@@ -6139,10 +6139,13 @@ function renderAdmin(){
 let ptForm = null, ptList = null;
 const ptBlank = () => ({key:"", name:"", short:"", color:"#3D5FD9", logo:null, weight:1, industry:"", info:"", vara:"", varor:"", prisklass:"", status:"utkast", isNew:true});
 const slug = t => norm(t).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30);
+let ldList = [];   // intresseanmälningar från pluggpeng.se/for-foretag (49_foretagskontakt.sql)
 async function ptLoad(){
   if(!sb || !user){ ptList = []; return; }
-  const {data, error} = await selectPartners(true);
+  const [{data, error}, ld] = await Promise.all([selectPartners(true),
+    sb.from("partner_leads").select("*").neq("status", "klar").order("created_at", {ascending:false})]);
   ptList = error ? [] : data; if(error) console.warn(error);
+  ldList = ld.error ? [] : ld.data;
   if(adminTab==="foretag") renderAdmin();
 }
 // Förhandsvisning: samma case-ruta som i quizet
@@ -6160,7 +6163,22 @@ function ptAdminHTML(){
   if(ptList===null){ ptLoad(); return `<div class="card"><p class="meta">Hämtar företagen …</p></div>`; }
   const f = ptForm;
   const tot = ptList.filter(r=>r.status==="aktiv").reduce((a,r)=>a+r.weight, 0);
+  const LI = {case:"Frågorna", bonusfragor:"Bonusfrågor", erbjudanden:"Erbjudanden", annat:"Vet inte än"};
   return `
+  ${ldList.length ? `<div class="card pl-card" style="margin:0 0 16px">
+    <div><h2 style="font-size:20px">Intresseanmälningar (${ldList.length})</h2>
+    <p class="note" style="margin:6px 0 0">Från sidan pluggpeng.se/for-foretag. Svara via mejl och markera när det är gjort. Ta bort anmälningar som inte blev något inom 12 månader.</p></div>
+    ${ldList.map(r=>`<div class="pc-row">
+      <div class="pc-main"><b>${esc(r.company)}</b> <span class="pill ${r.status==="ny" ? "warn" : ""}">${r.status==="ny" ? "Ny" : "Kontaktad"}</span>
+        <small>${esc(r.name)} · <a href="mailto:${esc(r.email)}?subject=${encodeURIComponent("Samarbete med Pluggpeng")}">${esc(r.email)}</a>${r.phone ? " · " + esc(r.phone) : ""} · ${new Date(r.created_at).toLocaleDateString("sv-SE")}</small>
+        ${r.interest.length ? `<small>Intresserade av: ${r.interest.map(k=>LI[k] || k).join(", ")}</small>` : ""}
+        ${r.message ? `<small style="white-space:pre-wrap">${esc(r.message)}</small>` : ""}</div>
+      <div class="pc-side"><div class="pl-btns">
+        ${r.status==="ny" ? `<button class="btn soft small" data-ld="${r.id}" data-ld-to="kontaktad">Kontaktad</button>` : ""}
+        <button class="btn soft small" data-ld-new="${r.id}">Skapa företag</button>
+        <button class="btn soft small" data-ld="${r.id}" data-ld-to="klar">Klar</button>
+        <button class="btn soft small" data-ld="${r.id}" data-ld-to="bort">Ta bort</button></div></div></div>`).join("")}
+  </div>` : ""}
   <div class="card" style="display:grid;gap:12px">
     <div class="section-title"><h2 style="font-size:22px">Samarbetsföretag</h2><button class="btn small" data-pt-new>+ Nytt företag</button></div>
     <p class="note">Nya företag blir <b>Utkast</b>: bara du ser dem, och du kan visa dem för företaget med <b>Förhandsvisa</b>. När avtalet är klart ändrar du till <b>Aktiv</b>. Då syns de för alla elever med logga och ”Annons · I samarbete med”, fördelat efter vikt.</p>
@@ -6244,6 +6262,12 @@ function plHTML(f){
           <button class="btn soft small" data-pl-off="${r.code}">Stäng av</button></div>` : ""}
       </div>`; }).join("")}</div>` : `<div class="empty">Inga länkar än.</div>`}`}
   </div>`;
+}
+async function ldSet(id, to){
+  if(to==="bort" && !confirm("Ta bort anmälan? Det går inte att ångra.")) return;
+  const r = to==="bort" ? await sb.from("partner_leads").delete().eq("id", id) : await sb.from("partner_leads").update({status:to}).eq("id", id);
+  if(r.error) return toast("Kunde inte spara: " + r.error.message);
+  toast(to==="bort" ? "Borttagen" : "Sparat"); ptLoad();
 }
 async function plCreate(){
   const row = {code:plCode(), partner_key:ptForm.key, level:$("#pl-level").value, start:$("#pl-start").value, offers:$("#pl-offers").checked,
@@ -7396,6 +7420,8 @@ if(d.shopjump){ const el = $("#shop-"+d.shopjump); if(!el) return;
   if(d.ptNologo!==undefined){ ptForm.logo = null; renderAdmin(); return; }
   if(d.ptSave!==undefined){ ptSave(); return; }
   if(d.plNew!==undefined){ plCreate(); return; }
+  if(d.ld){ ldSet(+d.ld, d.ldTo); return; }
+  if(d.ldNew){ const r = ldList.find(x=>x.id===+d.ldNew); ptForm = {...ptBlank(), name:r.company}; renderAdmin(); return; }
   if(d.plCopy){ plCopy(d.plCopy); return; }
   if(d.plOpen){ open((plIsLocal() ? plLocal() : PL_BASE) + d.plOpen, "_blank"); return; }
   if(d.plForm){ open((plIsLocal() ? plFormLocal() : PL_FORM) + d.plForm, "_blank"); return; }

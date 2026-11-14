@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>För företag – Pluggpeng</title>
+<meta name="description" content="Synas i Pluggpeng: i frågorna eleverna pluggar med, med egna bonusfrågor och med erbjudanden de löser in med coins. Alltid tydligt märkt och utan säljtryck.">
+<meta name="theme-color" content="#4C6EF5">
+<!-- Mall. bygg-publik.js fyller i Supabase och skriver pluggpeng-webb/for-foretag/index.html -->
+<link rel="preload" href="/fonts/Fredoka-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css">
+<style>
+.ff-ways{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:26px}
+@media (max-width:860px){.ff-ways{grid-template-columns:1fr}}
+.ff-ways .tile{display:grid;gap:10px;align-content:start}
+.ff-mock{background:var(--surface-2);border-radius:16px;padding:12px;display:grid;gap:8px;font-size:14px}
+.ff-mock .ad{font-size:10.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ff-mock .row{display:flex;gap:10px;align-items:center}
+.ff-mock .lg{width:30px;height:30px;border-radius:9px;background:#7A1F2B;color:#fff;font-weight:900;font-size:11px;display:grid;place-items:center;flex:none}
+.ff-mock .q{font-family:var(--display);font-weight:600;font-size:16px;line-height:1.25}
+.ff-mock .o{background:var(--surface);border-radius:10px;padding:7px 10px;font-weight:700}
+.ff-mock .o.ok{background:var(--mint);color:#15803D}
+.ff-mock .price{display:inline-flex;gap:6px;align-items:center;font-weight:900;background:var(--coin-soft);color:var(--coin-ink);border-radius:999px;padding:2px 10px;justify-self:start}
+.ff-coin{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFE08A,#F7B731 60%,#D99A0B);display:inline-block}
+.ff-rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px}
+@media (max-width:760px){.ff-rules{grid-template-columns:1fr}}
+.ff-rules div{background:var(--surface);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow)}
+.ff-rules b{font-family:var(--display);font-size:18px;display:block;margin-bottom:4px}
+.ff-rules p{margin:0;color:var(--muted)}
+.ff-form{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;display:grid;gap:14px;max-width:720px;margin:26px auto 0}
+.ff-form .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:620px){.ff-form .two{grid-template-columns:1fr}}
+.ff-form label{display:grid;gap:6px;font-weight:800;font-size:15px}
+.ff-form input,.ff-form textarea{font:inherit;font-weight:600;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
+.ff-form input:focus,.ff-form textarea:focus{outline:none;border-color:var(--g1);box-shadow:0 0 0 3px var(--primary-soft,#E5EBFF)}
+.ff-form textarea{min-height:110px;resize:vertical}
+.ff-form fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+.ff-form legend{font-weight:800;font-size:15px;margin-bottom:6px}
+.ff-checks{display:flex;flex-wrap:wrap;gap:8px}
+.ff-checks label{display:flex;gap:8px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font-weight:700;cursor:pointer}
+.ff-checks input{width:auto;accent-color:var(--g1)}
+.ff-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.ff-small{font-size:13.5px;color:var(--muted);margin:0}
+.ff-msg{border-radius:14px;padding:14px 16px;font-weight:700}
+.ff-msg.ok{background:var(--mint);color:#15803D}
+.ff-msg.err{background:#FEE2E2;color:#B91C1C}
+.ff-form .btn{justify-self:start;border:0;cursor:pointer;font:inherit}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="/"><span class="slanten" aria-hidden="true"><b></b><i></i></span>Pluggpeng</a>
+      <div class="links"><a href="/">Hem</a><a href="/for-foretag/" aria-current="page">För företag</a></div>
+    </nav>
+    <div class="page-head">
+      <h1>Synas där eleverna pluggar</h1>
+      <p>Pluggpeng är en pluggapp för högstadiet, gymnasiet och högskolan. Eleverna övar med frågor från sina egna kurser och tjänar coins som de kan lösa in hos våra samarbetspartners. Företagen gör det möjligt att appen är gratis.</p>
+      <div class="cta" style="margin-top:18px"><a class="btn coin" href="#kontakt">Hör av dig</a><a class="btn ghost" href="#sa-gar-det-till">Så går det till ↓</a></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="block">
+    <div class="wrap">
+      <div class="center">
+        <span class="kicker">Tre sätt att synas</span>
+        <h2>Ni blir en del av pluggandet</h2>
+        <p class="sub">Inte en banner i kanten, utan en del av det eleverna faktiskt gör. Ni väljer vilka delar ni vill vara med i.</p>
+      </div>
+      <div class="ff-ways">
+        <div class="tile">
+          <div class="ico" style="background:var(--sky)">📚</div>
+          <h3>I frågorna</h3>
+          <p>Er logga och ert namn syns i case i de vanliga kurserna, till exempel ett räkneexempel om ett sommarjobb hos er. Frågorna är riktiga skolfrågor, och svaren bygger på fakta.</p>
+          <div class="ff-mock"><div class="row"><span class="lg">EH</span><div><b>Case</b><div class="ad">Annons · I samarbete med ert företag</div></div></div>
+            <div>Tänk dig att du får ett sommarjobb hos er och jobbar 6 timmar om dagen …</div></div>
+        </div>
+        <div class="tile">
+          <div class="ico" style="background:var(--butter)">⭐</div>
+          <h3>Egna bonusfrågor</h3>
+          <p>Ett eget paket om er under Samarbetspartners: er historia, hur ni jobbar och vilka jobb som finns. Eleverna får coins och XP för att svara.</p>
+          <div class="ff-mock"><div class="q">I vilken stad öppnade ert första café?</div><div class="o ok">✓ Rätt svar visas här</div><div class="o">Ett annat svar</div></div>
+        </div>
+        <div class="tile">
+          <div class="ico" style="background:var(--peach)">🎁</div>
+          <h3>Erbjudanden</h3>
+          <p>Eleverna löser in era erbjudanden med coins de har tjänat genom att plugga. De får en unik kod som visas i kassan eller används på nätet.</p>
+          <div class="ff-mock"><div class="ad">Annons · Ert företag</div><b>Valfritt kaffe</b><span class="price"><i class="ff-coin"></i>450 coins</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block alt" id="sa-gar-det-till">
+    <div class="wrap">
+      <div class="center">
+        <span class="kicker">Så går det till</span>
+        <h2>Från första kontakt till att ni syns</h2>
+        <p class="sub">Ni ser exakt hur det blir innan något visas för eleverna.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Ni hör av er</h3><p>Fyll i formuläret längre ner. Vi hörs och pratar om vad ni vill visa och vad det kostar.</p></div>
+        <div class="step"><h3>Ni får två länkar</h3><p>En till ett formulär där ni lägger in erbjudanden, bonusfrågor och text om er. En till appen i ett demoläge med bara ert företag.</p></div>
+        <div class="step"><h3>Vi granskar, sedan syns ni</h3><p>Vi går igenom allt och hör av oss om något behöver ändras. När avtalet är klart blir det synligt för eleverna.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="center">
+        <span class="kicker">Våra regler</span>
+        <h2>Tryggt för eleverna, bra för er</h2>
+        <p class="sub">Många av våra användare är 13–15 år. Därför är reglerna samma för alla företag.</p>
+      </div>
+      <div class="ff-rules">
+        <div><b>Alltid märkt som annons</b><p>Allt som kommer från ett företag märks ”Annons · I samarbete med”, så att ingen kan missa att det är reklam.</p></div>
+        <div><b>Inget säljtryck</b><p>Inga ”köp nu”, nedräkningar eller ”bara idag”. Erbjudanden presenteras sakligt, och bonusfrågorna handlar om fakta.</p></div>
+        <div><b>Lärandet först</b><p>Frågorna ska lära eleverna något. Rätt svar avgörs av fakta, inte av vem som syns i frågan.</p></div>
+        <div><b>Passar alla från 13 år</b><p>Inga produkter eller erbjudanden för vuxna, och inga företag i frågor om allvarliga ämnen som krig och sjukdom.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block alt" id="kontakt">
+    <div class="wrap">
+      <div class="center">
+        <span class="kicker">Kontakt</span>
+        <h2>Vill ni vara med?</h2>
+        <p class="sub">Berätta lite om er, så hör vi av oss. Ni kan också mejla <a href="mailto:support@pluggpeng.se?subject=Samarbete%20med%20Pluggpeng">support@pluggpeng.se</a>.</p>
+      </div>
+      <form class="ff-form" id="ff" novalidate>
+        <div class="two">
+          <label>Företag<input name="company" required maxlength="80" autocomplete="organization"></label>
+          <label>Ditt namn<input name="name" required maxlength="80" autocomplete="name"></label>
+          <label>E-post<input name="email" type="email" required maxlength="120" autocomplete="email"></label>
+          <label>Telefon (valfritt)<input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
+        </div>
+        <fieldset><legend>Vad är ni intresserade av?</legend>
+          <div class="ff-checks">
+            <label><input type="checkbox" name="interest" value="case"> Synas i frågorna</label>
+            <label><input type="checkbox" name="interest" value="bonusfragor"> Egna bonusfrågor</label>
+            <label><input type="checkbox" name="interest" value="erbjudanden"> Erbjudanden</label>
+            <label><input type="checkbox" name="interest" value="annat"> Vet inte än</label>
+          </div></fieldset>
+        <label>Meddelande (valfritt)<textarea name="message" maxlength="1000" placeholder="t.ex. vilka ni är och vad ni skulle vilja visa"></textarea></label>
+        <div class="ff-hp" aria-hidden="true"><label>Lämna tomt<input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <p class="ff-small">Vi använder uppgifterna bara för att svara er och sparar dem som längst i 12 månader om det inte blir något samarbete. Vill ni att vi tar bort dem tidigare, mejla support@pluggpeng.se.</p>
+        <div id="ff-msg" role="status" aria-live="polite"></div>
+        <button class="btn coin" type="submit">Skicka</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/"><span class="slanten" aria-hidden="true"><b></b><i></i></span>Pluggpeng</a>
+    <span><a href="/for-foretag/">För företag</a></span>
+    <span>© 2026 Pluggpeng · <a href="mailto:support@pluggpeng.se">support@pluggpeng.se</a></span>
+  </div>
+</footer>
+
+<script>
+const SB_URL = "https://byfapqnpdriisybfastd.supabase.co", SB_KEY = "sb_publishable_jK1jf-cpxp_navooFOsqaw_nffUL_IU";
+const ff = document.getElementById("ff"), msg = document.getElementById("ff-msg");
+const show = (t, ok) => { msg.className = "ff-msg " + (ok ? "ok" : "err"); msg.textContent = t; };
+ff.addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = new FormData(ff), v = k => (f.get(k) || "").toString().trim();
+  if(v("company").length < 2) return show("Skriv företagets namn.");
+  if(v("name").length < 2) return show("Skriv ditt namn.");
+  if(!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v("email"))) return show("Kolla e-postadressen.");
+  const btn = ff.querySelector("button"); btn.disabled = true; btn.textContent = "Skickar …";
+  try{
+    const r = await fetch(SB_URL + "/rest/v1/rpc/lead_submit", {method:"POST", headers:{"apikey":SB_KEY, "Content-Type":"application/json"},
+      body:JSON.stringify({p:{company:v("company"), name:v("name"), email:v("email"), phone:v("phone"), message:v("message"), website:v("website"), interest:f.getAll("interest")}})});
+    const j = await r.json().catch(()=>null);
+    if(!r.ok) throw new Error(j && j.message || "");
+    ff.reset(); show("Tack! Vi har fått ert meddelande och hör av oss inom några dagar.", true);
+  }catch(err){ show(err.message && !/violates|constraint/i.test(err.message) ? err.message : "Det gick inte att skicka. Försök igen eller mejla support@pluggpeng.se."); }
+  btn.disabled = false; btn.textContent = "Skicka";
+});
+</script>
+</body>
+</html>
