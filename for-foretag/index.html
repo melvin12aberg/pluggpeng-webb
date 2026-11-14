@@ -6,7 +6,7 @@
 <title>För företag – Pluggpeng</title>
 <meta name="description" content="Synas i Pluggpeng: i frågorna eleverna pluggar med, med egna bonusfrågor och med erbjudanden de löser in med coins. Alltid tydligt märkt och utan säljtryck.">
 <meta name="theme-color" content="#4C6EF5">
-<!-- Mall. bygg-publik.js fyller i Supabase och skriver pluggpeng-webb/for-foretag/index.html -->
+<!-- Källa. bygg-publik.js kopierar den till pluggpeng-webb/for-foretag/index.html -->
 <link rel="preload" href="/fonts/Fredoka-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
 <style>
@@ -45,6 +45,9 @@
 .ff-msg.ok{background:var(--mint);color:#15803D}
 .ff-msg.err{background:#FEE2E2;color:#B91C1C}
 .ff-form .btn{justify-self:start;border:0;cursor:pointer;font:inherit}
+.ff-mail ul{margin:6px 0 0;padding-left:20px}
+.ff-mail b{font-family:var(--display);font-size:18px}
+.ff-mail .btn{font-weight:800;font-family:var(--font)}
 </style>
 </head>
 <body>
@@ -102,7 +105,7 @@
         <p class="sub">Ni ser exakt hur det blir innan något visas för eleverna.</p>
       </div>
       <div class="steps">
-        <div class="step"><h3>Ni hör av er</h3><p>Fyll i formuläret längre ner. Vi hörs och pratar om vad ni vill visa och vad det kostar.</p></div>
+        <div class="step"><h3>Ni hör av er</h3><p>Mejla foretag@pluggpeng.se. Vi hörs och pratar om vad ni vill visa och vad det kostar.</p></div>
         <div class="step"><h3>Ni får två länkar</h3><p>En till ett formulär där ni lägger in erbjudanden, bonusfrågor och text om er. En till appen i ett demoläge med bara ert företag.</p></div>
         <div class="step"><h3>Vi granskar, sedan syns ni</h3><p>Vi går igenom allt och hör av oss om något behöver ändras. När avtalet är klart blir det synligt för eleverna.</p></div>
       </div>
@@ -130,28 +133,14 @@
       <div class="center">
         <span class="kicker">Kontakt</span>
         <h2>Vill ni vara med?</h2>
-        <p class="sub">Berätta lite om er, så hör vi av oss. Ni kan också mejla <a href="mailto:support@pluggpeng.se?subject=Samarbete%20med%20Pluggpeng">support@pluggpeng.se</a>.</p>
+        <p class="sub">Mejla oss och berätta lite om er, så hör vi av oss och bokar ett samtal.</p>
       </div>
-      <form class="ff-form" id="ff" novalidate>
-        <div class="two">
-          <label>Företag<input name="company" required maxlength="80" autocomplete="organization"></label>
-          <label>Ditt namn<input name="name" required maxlength="80" autocomplete="name"></label>
-          <label>E-post<input name="email" type="email" required maxlength="120" autocomplete="email"></label>
-          <label>Telefon (valfritt)<input name="phone" type="tel" maxlength="30" autocomplete="tel"></label>
-        </div>
-        <fieldset><legend>Vad är ni intresserade av?</legend>
-          <div class="ff-checks">
-            <label><input type="checkbox" name="interest" value="case"> Synas i frågorna</label>
-            <label><input type="checkbox" name="interest" value="bonusfragor"> Egna bonusfrågor</label>
-            <label><input type="checkbox" name="interest" value="erbjudanden"> Erbjudanden</label>
-            <label><input type="checkbox" name="interest" value="annat"> Vet inte än</label>
-          </div></fieldset>
-        <label>Meddelande (valfritt)<textarea name="message" maxlength="1000" placeholder="t.ex. vilka ni är och vad ni skulle vilja visa"></textarea></label>
-        <div class="ff-hp" aria-hidden="true"><label>Lämna tomt<input name="website" tabindex="-1" autocomplete="off"></label></div>
-        <p class="ff-small">Vi använder uppgifterna bara för att svara er och sparar dem som längst i 12 månader om det inte blir något samarbete. Vill ni att vi tar bort dem tidigare, mejla support@pluggpeng.se.</p>
-        <div id="ff-msg" role="status" aria-live="polite"></div>
-        <button class="btn coin" type="submit">Skicka</button>
-      </form>
+      <div class="ff-form ff-mail">
+        <a class="btn coin" href="mailto:foretag@pluggpeng.se?subject=Samarbete%20med%20Pluggpeng&amp;body=Hej!%0A%0AVi heter … och är intresserade av att synas i Pluggpeng.%0A%0AVad vi skulle vilja visa:%0A%0ANi når mig på (telefon):%0A">Mejla foretag@pluggpeng.se</a>
+        <div><b>Skriv gärna</b>
+          <ul><li>vilka ni är och vad ni säljer eller gör</li><li>vad ni skulle vilja visa: i frågorna, egna bonusfrågor eller erbjudanden</li><li>hur vi når dig, till exempel ett telefonnummer</li></ul></div>
+        <p class="ff-small">Vi svarar oftast inom några dagar.</p>
+      </div>
     </div>
   </section>
 </main>
@@ -160,30 +149,9 @@
   <div class="wrap">
     <a class="brand" href="/"><span class="slanten" aria-hidden="true"><b></b><i></i></span>Pluggpeng</a>
     <span><a href="/for-foretag/">För företag</a></span>
-    <span>© 2026 Pluggpeng · <a href="mailto:support@pluggpeng.se">support@pluggpeng.se</a></span>
+    <span>© 2026 Pluggpeng · <a href="mailto:foretag@pluggpeng.se">foretag@pluggpeng.se</a></span>
   </div>
 </footer>
 
-<script>
-const SB_URL = "https://byfapqnpdriisybfastd.supabase.co", SB_KEY = "sb_publishable_jK1jf-cpxp_navooFOsqaw_nffUL_IU";
-const ff = document.getElementById("ff"), msg = document.getElementById("ff-msg");
-const show = (t, ok) => { msg.className = "ff-msg " + (ok ? "ok" : "err"); msg.textContent = t; };
-ff.addEventListener("submit", async e => {
-  e.preventDefault();
-  const f = new FormData(ff), v = k => (f.get(k) || "").toString().trim();
-  if(v("company").length < 2) return show("Skriv företagets namn.");
-  if(v("name").length < 2) return show("Skriv ditt namn.");
-  if(!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v("email"))) return show("Kolla e-postadressen.");
-  const btn = ff.querySelector("button"); btn.disabled = true; btn.textContent = "Skickar …";
-  try{
-    const r = await fetch(SB_URL + "/rest/v1/rpc/lead_submit", {method:"POST", headers:{"apikey":SB_KEY, "Content-Type":"application/json"},
-      body:JSON.stringify({p:{company:v("company"), name:v("name"), email:v("email"), phone:v("phone"), message:v("message"), website:v("website"), interest:f.getAll("interest")}})});
-    const j = await r.json().catch(()=>null);
-    if(!r.ok) throw new Error(j && j.message || "");
-    ff.reset(); show("Tack! Vi har fått ert meddelande och hör av oss inom några dagar.", true);
-  }catch(err){ show(err.message && !/violates|constraint/i.test(err.message) ? err.message : "Det gick inte att skicka. Försök igen eller mejla support@pluggpeng.se."); }
-  btn.disabled = false; btn.textContent = "Skicka";
-});
-</script>
 </body>
 </html>

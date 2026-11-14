@@ -194,7 +194,7 @@ const PICS = ["coffee","drinks","breakfast","burger","bowl","salad","smoothie","
 // Ord som låter som säljtryck. Bara en varning, Pluggpeng bestämmer vid granskningen.
 const PUSH_Q = /\b(köp|köper|köpa|handla|beställ|rabatt|erbjudande|kampanj|billig|billigast|bäst|bästa|prisvärd)/i;
 const PUSH_O = /(bara idag|endast idag|skynda|sista chansen|nu eller aldrig|köp nu|passa på|innan det är slut|begränsat antal)/i;
-let D = null, tab = "offers", sel = null, form = null, answered = null;
+let D = null, tab = "offers", sel = null, form = null, answered = null, sent = null;   // sent = namnet på den som just skickade in
 
 function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove("on"), 2600); }
 async function rpc(fn, args){
@@ -205,7 +205,7 @@ async function rpc(fn, args){
 }
 function fail(msg){
   $("#app").innerHTML = `<div class="full"><div><div class="big">🔒</div><h1>Formuläret går inte att öppna</h1><p>${msg}</p>
-    <p style="color:var(--muted);font-size:14px">Hör av dig till den på Pluggpeng som skickade länken, så får du en ny.</p></div></div>`;
+    <p style="color:var(--muted);font-size:14px">Mejla foretag@pluggpeng.se, så får du en ny länk.</p></div></div>`;
 }
 const P = () => D.partner;
 const logo = (size) => { const lg = (D.profile && D.profile.logo) || P().logo; return lg ? `<span class="mono img" style="${size ? `width:${size}px;height:${size}px` : ""}"><img src="${lg}" alt=""></span>`
@@ -222,6 +222,12 @@ async function boot(){
   catch(e){ return fail(/går inte/.test(e.message) ? "Länken har gått ut, stängts av eller får inte användas till formuläret." : "Det gick inte att ansluta. Ladda om sidan och försök igen."); }
   document.title = "Pluggpeng för " + P().name;
   render();
+}
+// Ett färdigt mejl till oss om att det finns något att granska (vi får ingen automatisk notis)
+function notifyLink(){
+  const what = [sent.o ? sent.o + (sent.o===1 ? " erbjudande" : " erbjudanden") : "", sent.q ? sent.q + (sent.q===1 ? " bonusfråga" : " bonusfrågor") : ""].filter(Boolean).join(" och ");
+  const body = `Hej!\n\nVi har skickat in ${what || "ändringar"} i Pluggpengs formulär för ${P().name}. Kan ni granska?\n\nHälsningar\n${sent.who}`;
+  return "mailto:foretag@pluggpeng.se?subject=" + encodeURIComponent(P().name + " har skickat in för granskning") + "&body=" + encodeURIComponent(body);
 }
 function counts(){ return {offers:D.offers.length, questions:D.questions.length}; }
 function drafts(){ return D.offers.filter(o=>o.status==="utkast").length + D.questions.filter(q=>q.status==="utkast").length + (D.profile && D.profile.status==="utkast" ? 1 : 0); }
@@ -243,7 +249,8 @@ function render(){
       <li>Vi granskar<small>Och hör av oss om något</small></li>
       <li>Det blir aktivt<small>När avtalet är klart</small></li>
     </ol>
-    <div class="intro-btns"><a class="btn soft" href="/forhandsvisning/?kod=${CODE}" target="_blank" rel="noopener">Öppna förhandsvisningen i appen ↗</a></div>
+    <div class="intro-btns"><a class="btn soft" href="/forhandsvisning/?kod=${CODE}" target="_blank" rel="noopener">Öppna förhandsvisningen i appen ↗</a>
+      <a class="btn ghost" href="mailto:foretag@pluggpeng.se?subject=${encodeURIComponent("Fråga från " + P().name)}">Frågor? foretag@pluggpeng.se</a></div>
   </section>
   <nav class="tabs" role="tablist">
     ${[["offers","Erbjudanden",c.offers],["questions","Bonusfrågor",c.questions],["profile","Om företaget",null]].map(([k,t,n])=>`
@@ -256,8 +263,9 @@ function render(){
   </div>
 </main>
 <div class="submit"><div class="wrap">
-  <div class="txt">${n ? `${n} ${n===1 ? "sak är" : "saker är"} inte inskickade än` : c.offers + c.questions ? "Allt är inskickat" : "Inget att skicka in än"}<small>${n ? "Skriv ditt namn och skicka in, så granskar vi." : c.offers + c.questions ? "Ni kan fortsätta ändra. Ändringar behöver skickas in igen." : "Börja med ett erbjudande eller en bonusfråga."}</small></div>
-  ${n ? `<input class="input" id="who" placeholder="Ditt namn" maxlength="80" autocomplete="name"><button class="btn" data-submit>Skicka in för granskning</button>` : ""}
+  <div class="txt">${n ? `${n} ${n===1 ? "sak är" : "saker är"} inte inskickade än` : sent ? "Inskickat! Sista steget: säg till oss" : c.offers + c.questions ? "Allt är inskickat" : "Inget att skicka in än"}<small>${n ? "Skriv ditt namn och skicka in, så granskar vi." : sent ? "Tryck på knappen, så öppnas ett färdigt mejl till oss." : c.offers + c.questions ? "Ni kan fortsätta ändra. Ändringar behöver skickas in igen." : "Börja med ett erbjudande eller en bonusfråga."}</small></div>
+  ${n ? `<input class="input" id="who" placeholder="Ditt namn" maxlength="80" autocomplete="name"><button class="btn" data-submit>Skicka in för granskning</button>`
+    : sent ? `<a class="btn" href="${notifyLink()}">Meddela Pluggpeng ✉</a>` : ""}
 </div></div>`;
 }
 
@@ -460,7 +468,9 @@ async function submitAll(){
   const who = ($("#who").value || "").trim(); if(who.length < 2) return toast("Skriv ditt namn");
   if(form && tab!=="profile" && !form.id && (form.title || form.question)) return toast("Spara det du skriver på först");
   if(!confirm(`Skicka in allt som är utkast? Det sparas att ${who} skickade in det. Pluggpeng granskar och hör av sig.`)) return;
-  try{ const r = await rpc("portal_submit", {p_code:CODE, p_name:who}); Object.assign(D, {offers:r.offers, questions:r.questions, profile:r.profile}); render(); toast("Tack! Nu granskar vi."); }
+  const before = {o:D.offers.filter(x=>x.status==="utkast").length, q:D.questions.filter(x=>x.status==="utkast").length};
+  try{ const r = await rpc("portal_submit", {p_code:CODE, p_name:who}); Object.assign(D, {offers:r.offers, questions:r.questions, profile:r.profile});
+    sent = {who, ...before}; render(); toast("Inskickat! Tryck på Meddela Pluggpeng."); }
   catch(e){ toast(e.message); }
 }
 // Loggan görs om till en liten bild (högst 256 px)
