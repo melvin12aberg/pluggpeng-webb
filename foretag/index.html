@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pluggpeng för företag</title>
+<!-- Mall. bygg-publik.js fyller i Supabase och bilderna och skriver pluggpeng-webb/foretag/index.html -->
+<style>
+@font-face{font-family:'Fredoka';font-weight:300 700;font-display:swap;src:url(/fonts/Fredoka-latin.woff2) format('woff2')}
+@font-face{font-family:'Nunito';font-weight:200 1000;font-display:swap;src:url(/fonts/Nunito-latin.woff2) format('woff2')}
+:root{
+  --bg:#F4F6FB;--surface:#fff;--surface-2:#EDF0F8;--ink:#1E2440;--muted:#646C86;--line:#E1E5F0;
+  --primary:#4C6EF5;--primary-soft:#E5EBFF;--coin:#F7B731;--coin-soft:#FFF3D1;--coin-ink:#7A4E00;
+  --good:#16A34A;--good-soft:#DCFCE7;--bad:#DC2626;--bad-soft:#FEE2E2;--warn:#B45309;--warn-soft:#FEF3C7;
+  --shadow:0 1px 2px rgba(30,36,64,.06),0 10px 30px rgba(30,36,64,.08);
+  --display:"Fredoka","Avenir Next Rounded",system-ui,sans-serif;--font:"Nunito","Segoe UI",system-ui,sans-serif;
+  --pc:#4C6EF5;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121528;--surface:#1B2038;--surface-2:#252B48;--ink:#EEF0FA;--muted:#A3AAC6;--line:#2E355A;
+  --primary:#8EA4FF;--primary-soft:#262F5C;--coin-soft:#3D3218;--coin-ink:#FFD978;
+  --good:#4ADE80;--good-soft:#16352A;--bad:#F87171;--bad-soft:#3F1D24;--warn:#FBBF24;--warn-soft:#3A2E12;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.5;font-size:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--primary)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header.top{background:linear-gradient(120deg,#4C6EF5,#7A5CF0 60%,#A35CE8);color:#fff;padding:18px 0 70px}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px}
+.brand small{font-family:var(--font);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.8;background:rgba(255,255,255,.16);padding:4px 10px;border-radius:999px}
+.top .who{display:flex;align-items:center;gap:10px;font-weight:800}
+.mono{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--pc);color:#fff;font-weight:900;font-size:13px;overflow:hidden;flex:none}
+.mono.img{background:#fff}
+.mono img{width:84%;height:84%;object-fit:contain}
+main{margin-top:-52px;padding-bottom:140px}
+.card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);padding:22px}
+.intro{display:grid;gap:14px}
+.intro h1{font-size:30px}
+.intro p{margin:0;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:4px 0 0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;background:var(--surface-2);border-radius:14px;padding:10px 12px;font-size:13.5px;font-weight:700;display:grid;gap:2px}
+.steps li::before{content:counter(s);font-family:var(--display);font-size:18px;color:var(--primary)}
+.steps li small{font-weight:600;color:var(--muted)}
+@media (max-width:820px){.steps{grid-template-columns:1fr 1fr}}
+.intro-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:11px 18px;font-weight:800;cursor:pointer;background:var(--primary);color:#fff;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn.soft{background:var(--primary-soft);color:var(--primary)}
+.btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn.small{padding:7px 12px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:default}
+.tabs{display:flex;gap:6px;margin:22px 0 14px;flex-wrap:wrap}
+.tab{border:0;background:var(--surface);border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer;box-shadow:var(--shadow);display:flex;gap:8px;align-items:center}
+.tab.on{background:var(--ink);color:var(--surface)}
+.tab .n{font-size:12px;background:var(--surface-2);color:var(--muted);border-radius:999px;padding:1px 8px}
+.tab.on .n{background:rgba(255,255,255,.18);color:inherit}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:18px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.side{position:sticky;top:16px;display:grid;gap:10px}
+@media (max-width:900px){.side{position:static}}
+.label{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rules{background:var(--primary-soft);border-radius:16px;padding:12px 14px;font-size:14px;display:grid;gap:4px}
+.rules b{font-family:var(--display);font-size:15px}
+.rules ul{margin:0;padding-left:18px}
+.list{display:grid;gap:8px;margin-top:14px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:16px;background:var(--surface);cursor:pointer;text-align:left;width:100%}
+.item.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.item .t{flex:1;min-width:0;display:grid}
+.item .t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t small{color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:12px;font-weight:900;border-radius:999px;padding:3px 10px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill.utkast{background:var(--surface-2);color:var(--muted)}
+.pill.inskickat{background:var(--primary-soft);color:var(--primary)}
+.pill.andras{background:var(--warn-soft);color:var(--warn)}
+.pill.godkand{background:var(--good-soft);color:var(--good)}
+.pill.aktiv{background:var(--good);color:#fff}
+.pill.pausad{background:var(--surface-2);color:var(--muted)}
+.empty{border:1.5px dashed var(--line);border-radius:16px;padding:22px;text-align:center;color:var(--muted)}
+form.ed{display:grid;gap:14px;margin-top:16px;padding-top:16px;border-top:1.5px solid var(--line)}
+.f{display:grid;gap:6px;font-weight:800;font-size:14px}
+.f small{font-weight:600;color:var(--muted)}
+.input{width:100%;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;font-weight:600}
+.input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+textarea.input{resize:vertical;min-height:76px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.row3{grid-template-columns:1fr 1fr}}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg label{border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer;font-weight:800;font-size:14px;display:flex;gap:6px;align-items:center}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px}
+.pics button{border:1.5px solid var(--line);background:var(--surface-2);border-radius:12px;padding:4px;cursor:pointer;aspect-ratio:1}
+.pics button.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.pics svg{width:100%;height:100%}
+.wrongs{display:grid;gap:6px}
+.warn{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 12px;font-weight:700;font-size:14px}
+.note{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px}
+.note b{display:block}
+.locked{background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--muted);font-weight:700}
+.ed-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ed-btns .sp{flex:1}
+/* Förhandsvisningen: samma utseende som i appen */
+.phone{background:linear-gradient(160deg,#4C6EF5,#7A5CF0);border-radius:30px;padding:16px;box-shadow:var(--shadow)}
+.phone .scr{background:var(--bg);border-radius:20px;padding:14px;display:grid;gap:12px;min-height:260px}
+.ad{font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.prod{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;background:var(--surface);border-radius:18px;padding:10px;box-shadow:var(--shadow)}
+.prod-art{position:relative;background:var(--surface-2);border-radius:14px;aspect-ratio:1;display:grid;place-items:center}
+.prod-art svg{width:78%;height:78%}
+.prod-art .mono{position:absolute;right:6px;bottom:6px;width:28px;height:28px;border-radius:8px}
+.prod h3{font-size:18px}
+.price{display:inline-flex;align-items:center;gap:6px;font-weight:900;color:var(--coin-ink);background:var(--coin-soft);border-radius:999px;padding:3px 10px;margin-top:6px;font-size:14px}
+.coin{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFE08A,var(--coin) 60%,#D99A0B);display:inline-block}
+.od{background:var(--surface);border-radius:18px;padding:14px;display:grid;gap:10px;box-shadow:var(--shadow)}
+.od h3{font-size:22px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips span{background:var(--surface-2);border-radius:999px;padding:4px 10px;font-weight:800;font-size:13px}
+.od p{margin:0}
+.terms{font-size:12.5px;color:var(--muted);display:grid;gap:4px;border-top:1.5px solid var(--line);padding-top:8px}
+.terms p{margin:0}
+.case{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;border-left:5px solid var(--pc)}
+.case-brand{display:flex;gap:10px;align-items:center;padding:12px 14px;background:color-mix(in srgb,var(--pc) 8%,var(--surface))}
+.case-brand b{display:block}
+.qq{font-family:var(--display);font-size:20px;font-weight:600}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:11px 12px;cursor:pointer;font-weight:700;width:100%}
+.opt i{font-style:normal;width:26px;height:26px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;font-weight:900;font-size:13px;flex:none}
+.opt.ok{border-color:var(--good);background:var(--good-soft)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.expl{background:var(--surface);border-radius:14px;padding:12px;font-size:14px}
+.pt{display:flex;gap:12px;align-items:center;background:var(--surface);border-radius:18px;padding:14px;box-shadow:var(--shadow);border-left:5px solid var(--pc)}
+.pt .mono{width:56px;height:56px;border-radius:14px;font-size:18px}
+.pt h3{font-size:22px}
+.pt p{margin:4px 0 0;font-size:14px}
+.hint{font-size:13px;color:var(--muted);text-align:center}
+.submit{position:fixed;left:0;right:0;bottom:0;background:var(--surface);box-shadow:0 -6px 30px rgba(30,36,64,.12);padding:12px 0;z-index:5}
+.submit .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.submit .txt{flex:1;min-width:200px;font-weight:700;font-size:14px}
+.submit .txt small{display:block;color:var(--muted);font-weight:600}
+.submit .input{max-width:220px}
+.peek{display:none}
+@media (max-width:900px){
+  .peek{display:inline-flex}
+  .submit .txt small{display:none}
+  .submit .wrap{gap:8px}
+  .submit .txt{flex-basis:100%;min-width:0}
+  .submit .input{flex:1;max-width:none;min-width:0}
+}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:999px;font-weight:800;z-index:9;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1}
+.full{min-height:100dvh;display:grid;place-items:center;padding:24px;text-align:center}
+.full > div{max-width:440px;display:grid;gap:12px}
+.full .big{font-size:44px}
+</style>
+</head>
+<body>
+<div id="app"><div class="full"><div><p>Laddar …</p></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const SB_URL = "https://byfapqnpdriisybfastd.supabase.co", SB_KEY = "sb_publishable_jK1jf-cpxp_navooFOsqaw_nffUL_IU";
+const SH = `<ellipse cx="40" cy="69" rx="24" ry="3.5" fill="rgba(0,0,0,.1)"/>`;
+const ART = {
+  coffee:`<path d="M30 12c-3 4 3 6 0 10M42 10c-3 4 3 6 0 10" stroke="#B9865A" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M58 36h3a8 8 0 0 1 0 16h-5" stroke="#fff" stroke-width="5" fill="none"/><path d="M16 30h42v16a18 18 0 0 1-18 18h-6a18 18 0 0 1-18-18z" fill="#fff"/><rect x="16" y="30" width="42" height="7" fill="#8B5CF6"/>`,
+  drinks:`<rect x="18" y="22" width="20" height="42" rx="6" fill="#14967A"/><rect x="42" y="16" width="20" height="48" rx="6" fill="#F7B731"/><rect x="18" y="34" width="20" height="11" fill="#fff" opacity=".85"/><rect x="42" y="30" width="20" height="11" fill="#fff" opacity=".85"/><rect x="23" y="17" width="10" height="5" rx="2" fill="#9AA3B8"/><rect x="47" y="11" width="10" height="5" rx="2" fill="#9AA3B8"/>`,
+  notebook:`<rect x="16" y="14" width="36" height="50" rx="5" fill="#C2552B"/><rect x="22" y="14" width="30" height="50" rx="4" fill="#E9774A"/><rect x="28" y="24" width="18" height="6" rx="2" fill="#fff"/><g transform="rotate(25 60 40)"><rect x="56" y="14" width="9" height="40" rx="2" fill="#F7B731"/><path d="M56 54h9l-4.5 9z" fill="#3B2600"/></g>`,
+  books:`<rect x="14" y="52" width="50" height="11" rx="3" fill="#4C6EF5"/><rect x="19" y="41" width="44" height="11" rx="3" fill="#C2552B"/><rect x="16" y="30" width="46" height="11" rx="3" fill="#14967A"/><circle cx="57" cy="20" r="12" fill="#F7B731"/><text x="57" y="25" text-anchor="middle" font-size="15" font-weight="800" fill="#3B2600" font-family="sans-serif">%</text>`,
+  gym:`<rect x="24" y="36" width="32" height="7" rx="3" fill="#646C86"/><rect x="12" y="24" width="9" height="31" rx="3" fill="#3D5FD9"/><rect x="21" y="29" width="6" height="21" rx="2" fill="#6F88F0"/><rect x="59" y="24" width="9" height="31" rx="3" fill="#3D5FD9"/><rect x="53" y="29" width="6" height="21" rx="2" fill="#6F88F0"/>`,
+  shirt:`<path d="M28 14l-15 9 7 13 6-3v31h28V33l6 3 7-13-15-9c-2 5-6 8-12 8s-10-3-12-8z" fill="#D9466A"/><path d="M34 40h12" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/>`,
+  car:`<path d="M12 54V43l10-15h34l12 15v11z" fill="#0E7490"/><path d="M26 31h11v11H19zM41 31h13l8 11H41z" fill="#DDEEFF"/><circle cx="26" cy="55" r="7" fill="#1E2440"/><circle cx="56" cy="55" r="7" fill="#1E2440"/><circle cx="26" cy="55" r="3" fill="#fff"/><circle cx="56" cy="55" r="3" fill="#fff"/>`,
+  freeze:`<g stroke="#4C6EF5" stroke-width="5" stroke-linecap="round"><path d="M40 12v52M17 25l46 26M17 51l46-26"/></g><circle cx="40" cy="38" r="8" fill="#fff" stroke="#4C6EF5" stroke-width="4"/>`,
+  hat:`<path d="M16 52a24 24 0 0 1 48 0z" fill="#4C6EF5"/><rect x="13" y="49" width="54" height="12" rx="6" fill="#3651C9"/><circle cx="40" cy="22" r="8" fill="#F7B731"/>`,
+  heart:`<path d="M40 64S14 50 14 31a13 13 0 0 1 26-5 13 13 0 0 1 26 5c0 19-26 33-26 33z" fill="#D0473C"/><path d="M26 28a7 7 0 0 1 7-6" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".7"/>`,
+  tree:`<rect x="36" y="44" width="8" height="20" rx="2" fill="#9C6600"/><circle cx="40" cy="30" r="17" fill="#24895A"/><circle cx="27" cy="40" r="11" fill="#2FA36C"/><circle cx="53" cy="40" r="11" fill="#2FA36C"/>`,
+ticket:`<path d="M10 24h60v9a7 7 0 0 0 0 14v9H10v-9a7 7 0 0 0 0-14z" fill="#B4232F"/><path d="M52 27v26" stroke="#fff" stroke-width="2.5" stroke-dasharray="3 3"/><text x="31" y="45" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="sans-serif">BIO</text>`,
+popcorn:`<path d="M22 32h36l-5 32H27z" fill="#fff"/><path d="M29 32l2 32M40 32v32M51 32l-2 32" stroke="#D0473C" stroke-width="5"/><circle cx="28" cy="28" r="8" fill="#FFE9A8"/><circle cx="40" cy="22" r="9" fill="#FFF4CF"/><circle cx="52" cy="28" r="8" fill="#FFE9A8"/><circle cx="34" cy="31" r="7" fill="#FFF4CF"/><circle cx="46" cy="31" r="7" fill="#FFE9A8"/>`,
+bowl:`<path d="M12 38h56a28 26 0 0 1-56 0z" fill="#3F8F3A"/><circle cx="28" cy="34" r="7" fill="#F48B5A"/><circle cx="40" cy="30" r="8" fill="#9BD86B"/><circle cx="52" cy="34" r="7" fill="#F7B731"/><rect x="12" y="36" width="56" height="5" rx="2" fill="#2E6B2A"/>`,
+smoothie:`<path d="M24 26h32l-4 38H28z" fill="#F48BB0"/><path d="M24 26h32l-1 8H25z" fill="#fff" opacity=".5"/><path d="M44 26l8-16" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="34" cy="44" r="3" fill="#fff" opacity=".6"/>`,
+burger:`<path d="M14 36a26 18 0 0 1 52 0z" fill="#E9A23B"/><circle cx="28" cy="26" r="1.6" fill="#FFF4CF"/><circle cx="40" cy="22" r="1.6" fill="#FFF4CF"/><circle cx="52" cy="26" r="1.6" fill="#FFF4CF"/><path d="M12 38h56l-5 5-5-4-5 4-5-4-5 4-5-4-5 4-5-4-5 4z" fill="#6BBF59"/><rect x="13" y="43" width="54" height="9" rx="4" fill="#7A3E1D"/><path d="M14 52h52l-4 4H18z" fill="#F7C531"/><path d="M15 56h50a6 6 0 0 1-6 7H21a6 6 0 0 1-6-7z" fill="#E9A23B"/><rect x="56" y="10" width="14" height="22" rx="3" fill="#E2231A"/><path d="M63 4v8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>`,
+breakfast:`<path d="M44 40h20v14a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8z" fill="#fff"/><path d="M64 44h2a5 5 0 0 1 0 10h-3" stroke="#fff" stroke-width="3" fill="none"/><path d="M50 30c-2 3 2 4 0 7M58 30c-2 3 2 4 0 7" stroke="#B9865A" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="26" cy="48" rx="17" ry="13" fill="#D9963F"/><path d="M14 46c6-4 18-4 24 0" stroke="#F3C27A" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M12 50h28" stroke="#6BBF59" stroke-width="4" stroke-linecap="round"/><path d="M14 54h24" stroke="#F7C531" stroke-width="4" stroke-linecap="round"/>`,
+sneaker:`<path d="M10 54c0-8 2-18 6-22l10 6c6 4 14 4 20 2l22 8c4 2 4 8 2 10H12a2 2 0 0 1-2-4z" fill="#00337F"/><path d="M10 56h62v4a3 3 0 0 1-3 3H13a3 3 0 0 1-3-3z" fill="#fff"/><path d="M28 42l4-4M34 44l4-4M40 45l4-4" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><path d="M50 49l14 4" stroke="#E2231A" stroke-width="4" stroke-linecap="round"/><circle cx="60" cy="20" r="11" fill="#F7B731"/><text x="60" y="25" text-anchor="middle" font-size="13" font-weight="800" fill="#3B2600" font-family="sans-serif">%</text>`,
+salad:`<path d="M12 40h56a28 24 0 0 1-56 0z" fill="#fff"/><path d="M12 40h56" stroke="#E3000F" stroke-width="3"/><circle cx="24" cy="36" r="9" fill="#6BBF59"/><circle cx="36" cy="32" r="10" fill="#9BD86B"/><circle cx="50" cy="34" r="9" fill="#6BBF59"/><circle cx="30" cy="38" r="4" fill="#E2231A"/><circle cx="46" cy="38" r="4" fill="#F7C531"/><circle cx="58" cy="37" r="3.5" fill="#E2231A"/><rect x="58" y="12" width="12" height="22" rx="3" fill="#7CC4F2"/><rect x="60" y="8" width="8" height="5" rx="2" fill="#9AA3B8"/>`,
+scooter:`<path d="M22 58h34" stroke="#2E3A55" stroke-width="5" stroke-linecap="round"/><path d="M54 58L46 16h-8" stroke="#F26961" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="58" r="7" fill="#1E2440"/><circle cx="58" cy="58" r="7" fill="#1E2440"/><circle cx="20" cy="58" r="2.5" fill="#fff"/><circle cx="58" cy="58" r="2.5" fill="#fff"/><path d="M34 16h10" stroke="#2E3A55" stroke-width="4" stroke-linecap="round"/>`,
+bag:`<path d="M18 28h44l-4 36H22z" fill="#F7B731"/><path d="M30 28a10 10 0 0 1 20 0" stroke="#9C6600" stroke-width="4" fill="none"/><circle cx="40" cy="44" r="7" fill="#fff" opacity=".85"/>`
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const CODE = (() => { const k = (new URLSearchParams(location.search).get("kod") || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return k.length===12 ? k.match(/.{4}/g).join("-") : null; })();
+const STATUS = {utkast:"Utkast", inskickat:"Inskickat", andras:"Behöver ändras", godkand:"Godkänt", aktiv:"Aktivt", pausad:"Pausat"};
+const CATS = ["Mat & fika","Nöje","Träning","Plugg","Sport & kläder"];
+const PICS = ["coffee","drinks","breakfast","burger","bowl","salad","smoothie","popcorn","ticket","gym","books","notebook","shirt","sneaker","scooter","bag","heart","tree"];
+// Ord som låter som säljtryck. Bara en varning, Pluggpeng bestämmer vid granskningen.
+const PUSH_Q = /\b(köp|köper|köpa|handla|beställ|rabatt|erbjudande|kampanj|billig|billigast|bäst|bästa|prisvärd)/i;
+const PUSH_O = /(bara idag|endast idag|skynda|sista chansen|nu eller aldrig|köp nu|passa på|innan det är slut|begränsat antal)/i;
+let D = null, tab = "offers", sel = null, form = null, answered = null;
+
+function toast(t){ const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(()=>el.classList.remove("on"), 2600); }
+async function rpc(fn, args){
+  const r = await fetch(SB_URL + "/rest/v1/rpc/" + fn, {method:"POST", headers:{"apikey":SB_KEY, "Content-Type":"application/json"}, body:JSON.stringify(args)});
+  const j = await r.json().catch(()=>null);
+  if(!r.ok) throw new Error(j && j.message || "Något gick fel");
+  return j;
+}
+function fail(msg){
+  $("#app").innerHTML = `<div class="full"><div><div class="big">🔒</div><h1>Formuläret går inte att öppna</h1><p>${msg}</p>
+    <p style="color:var(--muted);font-size:14px">Hör av dig till den på Pluggpeng som skickade länken, så får du en ny.</p></div></div>`;
+}
+const P = () => D.partner;
+const logo = (size) => { const lg = (D.profile && D.profile.logo) || P().logo; return lg ? `<span class="mono img" style="${size ? `width:${size}px;height:${size}px` : ""}"><img src="${lg}" alt=""></span>`
+  : `<span class="mono" style="${size ? `width:${size}px;height:${size}px` : ""}">${esc(P().short)}</span>`; };
+const pic = k => `<svg viewBox="0 0 80 80" aria-hidden="true">${SH}${ART[k] || ART.bag}</svg>`;
+const pill = s => `<span class="pill ${s}">${STATUS[s] || s}</span>`;
+const editable = s => !["aktiv","pausad"].includes(s);
+const coinsFor = kr => Math.round(kr * 10 / 10) * 10;   // ungefär som de andra erbjudandena (45 kr ≈ 450 coins)
+const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+async function boot(){
+  if(!CODE) return fail("Länken saknar kod. Öppna hela länken du fick.");
+  try{ D = await rpc("portal_get", {p_code:CODE}); }
+  catch(e){ return fail(/går inte/.test(e.message) ? "Länken har gått ut, stängts av eller får inte användas till formuläret." : "Det gick inte att ansluta. Ladda om sidan och försök igen."); }
+  document.title = "Pluggpeng för " + P().name;
+  render();
+}
+function counts(){ return {offers:D.offers.length, questions:D.questions.length}; }
+function drafts(){ return D.offers.filter(o=>o.status==="utkast").length + D.questions.filter(q=>q.status==="utkast").length + (D.profile && D.profile.status==="utkast" ? 1 : 0); }
+
+function render(){
+  document.documentElement.style.setProperty("--pc", (D.profile && D.profile.color) || P().color);
+  const c = counts(), n = drafts();
+  $("#app").innerHTML = `
+<header class="top"><div class="wrap"><div class="brand">Pluggpeng <small>För företag</small></div>
+  <div class="who">${logo()}${esc(P().name)}</div></div></header>
+<main class="wrap">
+  <section class="card intro">
+    <h1>Hej ${esc(P().name)}!</h1>
+    <p>Här lägger ni in det eleverna ska se i Pluggpeng: erbjudanden i butiken och egna bonusfrågor om er. Till höger ser ni direkt hur det ser ut i appen.</p>
+    <ol class="steps">
+      <li>Fyll i<small>Allt sparas som utkast</small></li>
+      <li>Titta<small>I appens förhandsvisning</small></li>
+      <li>Skicka in<small>Med ditt namn</small></li>
+      <li>Vi granskar<small>Och hör av oss om något</small></li>
+      <li>Det blir aktivt<small>När avtalet är klart</small></li>
+    </ol>
+    <div class="intro-btns"><a class="btn soft" href="/forhandsvisning/?kod=${CODE}" target="_blank" rel="noopener">Öppna förhandsvisningen i appen ↗</a></div>
+  </section>
+  <nav class="tabs" role="tablist">
+    ${[["offers","Erbjudanden",c.offers],["questions","Bonusfrågor",c.questions],["profile","Om företaget",null]].map(([k,t,n])=>`
+      <button class="tab ${tab===k?"on":""}" role="tab" aria-selected="${tab===k}" data-tab="${k}">${t}${n!==null ? `<span class="n">${n}</span>` : ""}</button>`).join("")}
+  </nav>
+  <div class="grid">
+    <section class="card">${tab==="offers" ? offersHTML() : tab==="questions" ? questionsHTML() : profileHTML()}</section>
+    <aside class="side"><div class="label">Så här ser det ut i appen</div><div class="phone"><div class="scr" id="pv">${previewHTML()}</div></div>
+      <p class="hint">Bilden uppdateras medan du skriver. Priset i coins sätter Pluggpeng.</p></aside>
+  </div>
+</main>
+<div class="submit"><div class="wrap">
+  <div class="txt">${n ? `${n} ${n===1 ? "sak är" : "saker är"} inte inskickade än` : c.offers + c.questions ? "Allt är inskickat" : "Inget att skicka in än"}<small>${n ? "Skriv ditt namn och skicka in, så granskar vi." : c.offers + c.questions ? "Ni kan fortsätta ändra. Ändringar behöver skickas in igen." : "Börja med ett erbjudande eller en bonusfråga."}</small></div>
+  ${n ? `<input class="input" id="who" placeholder="Ditt namn" maxlength="80" autocomplete="name"><button class="btn" data-submit>Skicka in för granskning</button>` : ""}
+</div></div>`;
+}
+
+/* ---------- Erbjudanden ---------- */
+const blankOffer = () => ({id:"", title:"", text:"", terms:"", value_kr:"", channel:"kassa", cat:"Mat & fika", pic:"coffee", where_valid:"", web_url:"", qty_total:"", per_student:1, starts_on:"", ends_on:"", status:"utkast"});
+function offersHTML(){
+  return `<div class="rules"><b>Bra att veta om erbjudanden</b><ul>
+    <li>Eleverna löser in med coins de har tjänat genom att plugga. De betalar inga pengar.</li>
+    <li>Många är 13–15 år. Skriv sakligt, utan stress som ”bara idag” eller ”skynda”.</li>
+    <li>I butik får eleven en unik kod som visas i kassan. På nätet behövs en kod eller länk från er.</li></ul></div>
+  <div class="list">${D.offers.map(o=>`<button class="item ${sel===o.id?"on":""}" data-sel="${o.id}"><span class="mono" style="background:var(--surface-2)">${pic(o.pic)}</span>
+      <span class="t"><b>${esc(o.title)}</b><small>Värde ${o.value_kr} kr · ${o.channel==="kassa" ? "I butik" : "Online"}</small></span>${pill(o.status)}</button>`).join("")
+    || `<div class="empty">Inga erbjudanden än.</div>`}</div>
+  ${form ? offerForm() : `<div style="margin-top:12px"><button class="btn" data-new>+ Nytt erbjudande</button></div>`}`;
+}
+function offerForm(){
+  const f = form, lock = !editable(f.status), cur = D.offers.find(o=>o.id===f.id);
+  const seg = (name, opts) => `<div class="seg">${opts.map(([v,t])=>`<label class="${f[name]===v?"on":""}"><input type="radio" name="${name}" value="${v}" ${f[name]===v?"checked":""} data-f="${name}">${t}</label>`).join("")}</div>`;
+  return `<form class="ed" onsubmit="return false">
+    <h3>${f.id ? "Ändra erbjudande" : "Nytt erbjudande"} ${f.id ? pill(f.status) : ""}</h3>
+    ${cur && cur.status==="andras" && cur.admin_note ? `<div class="note"><b>Pluggpeng vill att ni ändrar:</b>${esc(cur.admin_note)}</div>` : ""}
+    ${lock ? `<div class="locked">Erbjudandet är ${STATUS[f.status].toLowerCase()} och kan inte ändras här. Hör av er till Pluggpeng om något ska ändras.</div>` : ""}
+    <fieldset ${lock?"disabled":""} style="border:0;padding:0;margin:0;display:grid;gap:14px">
+    <label class="f">Rubrik<input class="input" data-f="title" maxlength="40" value="${esc(f.title)}" placeholder="t.ex. Valfritt kaffe"><small>Kort, som på en skylt. Högst 40 tecken.</small></label>
+    <label class="f">Beskrivning<textarea class="input" data-f="text" maxlength="160" placeholder="t.ex. Valfri storlek i alla våra caféer.">${esc(f.text)}</textarea></label>
+    <div class="row2">
+      <label class="f">Värde i kronor<input class="input" data-f="value_kr" type="number" min="5" max="2000" value="${esc(f.value_kr)}" placeholder="45"><small>Vad det skulle kosta annars</small></label>
+      <div class="f">Var löses det in?${seg("channel", [["kassa","I butik"],["webb","Online"]])}</div>
+    </div>
+    ${f.channel==="webb" ? `<label class="f">Länk till er webbshop<input class="input" data-f="web_url" maxlength="200" value="${esc(f.web_url)}" placeholder="https://"><small>Rabattkoderna kommer vi överens om, till exempel en lista med unika koder.</small></label>`
+      : `<label class="f">Var gäller det?<input class="input" data-f="where_valid" maxlength="80" value="${esc(f.where_valid)}" placeholder="t.ex. Alla caféer i Sverige"></label>`}
+    <div class="f">Kategori i butiken${seg("cat", CATS.map(c=>[c,c]))}</div>
+    <div class="f">Bild<div class="pics">${PICS.map(k=>`<button type="button" class="${f.pic===k?"on":""}" data-pic="${k}" aria-label="${k}">${pic(k)}</button>`).join("")}</div></div>
+    <div class="row2">
+      <label class="f">Antal totalt<input class="input" data-f="qty_total" type="number" min="1" value="${esc(f.qty_total)}" placeholder="Obegränsat"></label>
+      <label class="f">Gånger per elev<input class="input" data-f="per_student" type="number" min="1" max="10" value="${esc(f.per_student)}"></label>
+      <label class="f">Från (valfritt)<input class="input" data-f="starts_on" type="date" value="${esc(f.starts_on)}"></label>
+      <label class="f">Till (valfritt)<input class="input" data-f="ends_on" type="date" value="${esc(f.ends_on)}"></label>
+    </div>
+    <label class="f">Egna villkor (valfritt)<textarea class="input" data-f="terms" maxlength="300" placeholder="t.ex. Gäller inte tillsammans med andra rabatter.">${esc(f.terms)}</textarea></label>
+    <div id="warn"></div>
+    </fieldset>
+    <div class="ed-btns">${lock ? "" : `<button class="btn" data-save>Spara utkast</button>`}<button class="btn soft peek" data-peek>Se hur det ser ut ↓</button><button class="btn ghost" data-cancel>Stäng</button><span class="sp"></span>
+      ${f.id && !lock ? `<button class="btn danger small" data-del>Ta bort</button>` : ""}</div>
+  </form>`;
+}
+function offerPreview(o){
+  const name = esc(P().name), price = o.value_kr ? coinsFor(+o.value_kr) : 0;
+  const terms = [`Koden gäller hos ${name} ${o.channel==="kassa" ? "och visas i kassan. Den kan användas en gång." : "och anges när du betalar på webben."}`];
+  if(o.where_valid && o.channel==="kassa") terms.push("Gäller: " + esc(o.where_valid) + ".");
+  if(o.starts_on || o.ends_on) terms.push(`Gäller ${o.starts_on ? "från " + o.starts_on : ""}${o.starts_on && o.ends_on ? " " : ""}${o.ends_on ? "till " + o.ends_on : ""}.`);
+  if(+o.per_student > 1) terms.push(`Varje elev kan lösa in det ${o.per_student} gånger.`);
+  if(o.terms) terms.push(esc(o.terms));
+  return `<div class="label">I butiken</div>
+  <div class="prod"><div class="prod-art">${pic(o.pic)}${logo(28)}</div>
+    <div><div class="ad">Annons · ${name}</div><h3>${esc(o.title || "Rubrik")}</h3><span class="price"><span class="coin"></span>${price ? "ca " + fmt(price) : "–"}</span></div></div>
+  <div class="label">När eleven trycker</div>
+  <div class="od"><div class="ad">Annons · I samarbete med ${name}</div>
+    <h3>${esc(o.title || "Rubrik")}</h3>
+    <div class="chips"><span>${o.channel==="kassa" ? "I butik" : "Online"}</span>${o.value_kr ? `<span>Värde ca ${esc(o.value_kr)} kr</span>` : ""}${o.qty_total ? `<span>${esc(o.qty_total)} st</span>` : ""}</div>
+    <p>${esc(o.text || "Beskrivningen visas här.")}</p>
+    <div class="terms"><b>Villkor</b>${terms.map(t=>`<p>${t}</p>`).join("")}</div></div>`;
+}
+
+/* ---------- Bonusfrågor ---------- */
+const blankQ = () => ({id:"", question:"", answer:"", wrong:["","",""], explanation:"", source:"", status:"utkast"});
+function questionsHTML(){
+  return `<div class="rules"><b>Bra att veta om bonusfrågor</b><ul>
+    <li>Frågorna handlar om er: historia, hur ni jobbar, jobb hos er, hållbarhet. Eleverna får coins och XP för dem.</li>
+    <li>Bara fakta som går att visa är sann. Skriv var faktan kommer ifrån, det ser bara Pluggpeng.</li>
+    <li>Ingen säljtext, inga priser och inga uppmaningar att köpa. Gärna lite lekfullt.</li>
+    <li>De fel svaren ska vara rimliga, så att man behöver tänka.</li></ul></div>
+  <div class="list">${D.questions.map((q,i)=>`<button class="item ${sel===q.id?"on":""}" data-sel="${q.id}"><span class="mono" style="background:var(--surface-2);color:var(--ink)">${i+1}</span>
+      <span class="t"><b>${esc(q.question)}</b><small>Rätt: ${esc(q.answer)}</small></span>${pill(q.status)}</button>`).join("")
+    || `<div class="empty">Inga frågor än. Ett paket blir bäst med 5–10 frågor.</div>`}</div>
+  ${form ? questionForm() : `<div style="margin-top:12px"><button class="btn" data-new>+ Ny fråga</button></div>`}`;
+}
+function questionForm(){
+  const f = form, lock = !editable(f.status), cur = D.questions.find(q=>q.id===f.id);
+  return `<form class="ed" onsubmit="return false">
+    <h3>${f.id ? "Ändra fråga" : "Ny fråga"} ${f.id ? pill(f.status) : ""}</h3>
+    ${cur && cur.status==="andras" && cur.admin_note ? `<div class="note"><b>Pluggpeng vill att ni ändrar:</b>${esc(cur.admin_note)}</div>` : ""}
+    ${lock ? `<div class="locked">Frågan är ${STATUS[f.status].toLowerCase()} och kan inte ändras här. Hör av er till Pluggpeng om något ska ändras.</div>` : ""}
+    <fieldset ${lock?"disabled":""} style="border:0;padding:0;margin:0;display:grid;gap:14px">
+    <label class="f">Fråga<textarea class="input" data-f="question" maxlength="200" placeholder="t.ex. Hur många kanelbullar bakas i våra caféer en vanlig dag?">${esc(f.question)}</textarea></label>
+    <label class="f">Rätt svar<input class="input" data-f="answer" maxlength="90" value="${esc(f.answer)}" placeholder="t.ex. Ungefär 20 000"></label>
+    <div class="f">Tre fel svar<div class="wrongs">${f.wrong.map((w,i)=>`<input class="input" data-w="${i}" maxlength="90" value="${esc(w)}" placeholder="Fel svar ${i+1}">`).join("")}</div>
+      <small>Försök göra dem ungefär lika långa som det rätta svaret.</small></div>
+    <label class="f">Förklaring (visas efter svaret)<textarea class="input" data-f="explanation" maxlength="300" placeholder="t.ex. Bullarna bakas på plats varje morgon.">${esc(f.explanation)}</textarea></label>
+    <label class="f">Källa (bara för Pluggpeng)<input class="input" data-f="source" maxlength="200" value="${esc(f.source)}" placeholder="t.ex. Årsredovisning 2025, sida 12, eller en länk"></label>
+    <div id="warn"></div>
+    </fieldset>
+    <div class="ed-btns">${lock ? "" : `<button class="btn" data-save>Spara utkast</button>`}<button class="btn soft peek" data-peek>Se hur det ser ut ↓</button><button class="btn ghost" data-cancel>Stäng</button><span class="sp"></span>
+      ${f.id && !lock ? `<button class="btn danger small" data-del>Ta bort</button>` : ""}</div>
+  </form>`;
+}
+// Svaren blandas med en fast ordning per fråga, som i appen
+function shuffled(q){
+  const all = [q.answer || "Rätt svar", ...q.wrong.map((w,i)=>w || "Fel svar " + (i+1))];
+  const h = s => { let x = 2166136261; for(const c of s) x = Math.imul(x ^ c.charCodeAt(0), 16777619); return x >>> 0; };
+  return all.map((t,i)=>({t, ok:i===0, k:h((q.question||"") + t + i)})).sort((a,b)=>a.k-b.k);
+}
+function questionPreview(q){
+  const name = esc(P().name), opts = shuffled(q);
+  return `<div class="case"><div class="case-brand">${logo(38)}<div><b>Bonusfråga · Om ${name}</b><span class="ad">Annons · I samarbete med ${name}</span></div></div></div>
+  <div class="qq">${esc(q.question || "Frågan visas här")}</div>
+  <div class="opts">${opts.map((o,i)=>`<button type="button" class="opt ${answered!==null ? (o.ok ? "ok" : answered===i ? "no" : "") : ""}" data-try="${i}"><i>${"ABCD"[i]}</i>${esc(o.t)}</button>`).join("")}</div>
+  ${answered!==null ? `<div class="expl"><b>${opts[answered].ok ? "Snyggt, rätt!" : "Inte riktigt."}</b> ${esc(q.explanation || "")}</div>` : `<p class="hint">Testa att svara.</p>`}`;
+}
+
+/* ---------- Om företaget ---------- */
+function profileHTML(){
+  const p = D.profile || {}, f = form;
+  return `<div class="rules"><b>Om företaget</b><ul>
+    <li>Texten visas på er sida under Samarbetspartners. Bara information, ingen säljtext.</li>
+    <li>Loggan blir liten, så en fyrkantig logga utan text runt om blir tydligast.</li></ul></div>
+  ${p.status==="andras" && p.admin_note ? `<div class="note" style="margin-top:12px"><b>Pluggpeng vill att ni ändrar:</b>${esc(p.admin_note)}</div>` : ""}
+  <form class="ed" onsubmit="return false">
+    <h3>Er sida ${p.status ? pill(p.status) : ""}</h3>
+    <label class="f">Om er (högst 400 tecken)<textarea class="input" data-f="info" maxlength="400" placeholder="t.ex. Kaffebar som startade i Lund 1996 och i dag finns i fem länder.">${esc(f.info)}</textarea></label>
+    <div class="row2">
+      <label class="f">Bransch<input class="input" data-f="industry" maxlength="40" value="${esc(f.industry)}" placeholder="t.ex. Café"></label>
+      <label class="f">Färg<input class="input" type="color" data-f="color" value="${esc(f.color)}" style="height:46px;padding:4px"></label>
+    </div>
+    <label class="f">Logga (PNG, JPG, SVG eller WebP)<input class="input" type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" data-logo></label>
+    <div id="warn"></div>
+    <div class="ed-btns"><button class="btn" data-save>Spara utkast</button><button class="btn soft peek" data-peek>Se hur det ser ut ↓</button></div>
+  </form>`;
+}
+function profilePreview(){
+  const f = form, lg = f.logo || P().logo;
+  return `<div class="label">Er sida under Samarbetspartners</div>
+  <div class="pt" style="--pc:${esc(f.color)}">${lg ? `<span class="mono img"><img src="${lg}" alt=""></span>` : `<span class="mono" style="background:${esc(f.color)}">${esc(P().short)}</span>`}
+    <div><div class="ad">Annons · I samarbete med ${esc(P().name)}</div><h3>${esc(P().name)}</h3>${f.industry ? `<small style="color:var(--muted);font-weight:800">${esc(f.industry)}</small>` : ""}<p>${esc(f.info || "Texten om er visas här.")}</p></div></div>`;
+}
+
+function previewHTML(){
+  if(tab==="profile") return profilePreview();
+  if(!form) return `<p class="hint" style="margin:auto">Välj ${tab==="offers" ? "ett erbjudande" : "en fråga"} eller skapa ${tab==="offers" ? "ett nytt" : "en ny"}, så visas det här.</p>`;
+  return tab==="offers" ? offerPreview(form) : questionPreview(form);
+}
+function checkWarn(){
+  const el = $("#warn"); if(!el || !form) return;
+  let w = "";
+  if(tab==="questions" && PUSH_Q.test([form.question, form.answer, form.explanation, ...form.wrong].join(" "))) w = "Det låter som försäljning. Bonusfrågor ska bara handla om fakta, inte om att köpa något. Vi kan behöva ändra frågan.";
+  if(tab==="offers" && PUSH_O.test([form.title, form.text, form.terms].join(" "))) w = "Undvik ord som skapar stress, till exempel ”bara idag” eller ”skynda”. Många elever är 13–15 år.";
+  if(tab==="profile" && PUSH_O.test(form.info || "")) w = "Undvik säljtext. Texten ska bara berätta om er.";
+  el.innerHTML = w ? `<div class="warn">${w}</div>` : "";
+}
+function refreshPreview(){ const el = $("#pv"); if(el) el.innerHTML = previewHTML(); checkWarn(); }
+
+function openTab(k){
+  tab = k; sel = null; answered = null;
+  if(k==="profile"){ const p = D.profile || {}; form = {info:p.info || P().info || "", industry:p.industry || P().industry || "", color:p.color || P().color, logo:p.logo || null}; }
+  else form = null;
+  render(); checkWarn();
+}
+function openItem(id){
+  sel = id; answered = null;
+  if(tab==="offers"){ const o = D.offers.find(x=>x.id===id); form = {...blankOffer(), ...Object.fromEntries(Object.entries(o).map(([k,v])=>[k, v ?? ""]))}; }
+  else { const q = D.questions.find(x=>x.id===id); form = {...blankQ(), ...q, source:q.source || "", wrong:[...q.wrong]}; }
+  render(); checkWarn();
+}
+function valid(){
+  const f = form;
+  if(tab==="offers"){
+    if(f.title.trim().length < 2) return "Skriv en rubrik";
+    if(f.text.trim().length < 2) return "Skriv en beskrivning";
+    if(!(+f.value_kr >= 5 && +f.value_kr <= 2000)) return "Värdet ska vara mellan 5 och 2 000 kr";
+    if(f.channel==="webb" && f.web_url && !/^https:\/\//.test(f.web_url)) return "Länken ska börja med https://";
+    if(f.starts_on && f.ends_on && f.ends_on < f.starts_on) return "Slutdatum är före startdatum";
+  } else if(tab==="questions"){
+    if(f.question.trim().length < 5) return "Skriv frågan";
+    if(!f.answer.trim()) return "Skriv det rätta svaret";
+    if(f.wrong.some(w=>!w.trim())) return "Skriv tre fel svar";
+    if(new Set([f.answer, ...f.wrong].map(x=>x.trim().toLowerCase())).size < 4) return "Alla fyra svar måste vara olika";
+    if(f.explanation.trim().length < 5) return "Skriv en kort förklaring";
+  }
+  return null;
+}
+async function save(){
+  const err = valid(); if(err) return toast(err);
+  const kind = tab==="offers" ? "offer" : tab==="questions" ? "question" : "profile";
+  const data = {...form}; delete data.status;
+  if(kind!=="profile") Object.keys(data).forEach(k => { if(typeof data[k]==="string") data[k] = data[k].trim(); });
+  try{
+    const r = await rpc("portal_save", {p_code:CODE, p_kind:kind, p_data:data});
+    Object.assign(D, {offers:r.offers, questions:r.questions, profile:r.profile});
+    toast("Sparat som utkast. Glöm inte att skicka in.");
+    if(kind==="profile") openTab("profile"); else { openItem(r.id); }
+  }catch(e){ toast(e.message); }
+}
+async function del(){
+  if(!confirm("Ta bort det här?")) return;
+  try{ const r = await rpc("portal_delete", {p_code:CODE, p_kind:tab==="offers" ? "offer" : "question", p_id:form.id});
+    Object.assign(D, {offers:r.offers, questions:r.questions, profile:r.profile}); form = null; sel = null; render(); toast("Borttaget"); }
+  catch(e){ toast(e.message); }
+}
+async function submitAll(){
+  const who = ($("#who").value || "").trim(); if(who.length < 2) return toast("Skriv ditt namn");
+  if(form && tab!=="profile" && !form.id && (form.title || form.question)) return toast("Spara det du skriver på först");
+  if(!confirm(`Skicka in allt som är utkast? Det sparas att ${who} skickade in det. Pluggpeng granskar och hör av sig.`)) return;
+  try{ const r = await rpc("portal_submit", {p_code:CODE, p_name:who}); Object.assign(D, {offers:r.offers, questions:r.questions, profile:r.profile}); render(); toast("Tack! Nu granskar vi."); }
+  catch(e){ toast(e.message); }
+}
+// Loggan görs om till en liten bild (högst 256 px)
+function readLogo(file){
+  return new Promise((ok, no) => {
+    const rd = new FileReader(); rd.onerror = no;
+    rd.onload = () => {
+      const url = rd.result;
+      if(file.type==="image/svg+xml" && url.length <= 110000) return ok(url);
+      const img = new Image(); img.onerror = no;
+      img.onload = () => { const sc = Math.min(1, 256 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.max(1, Math.round(img.width*sc)); c.height = Math.max(1, Math.round(img.height*sc));
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        let out = c.toDataURL("image/png"); if(out.length > 110000) out = c.toDataURL("image/webp", .85);
+        out.length > 110000 ? no(new Error("för stor")) : ok(out); };
+      img.src = url;
+    };
+    rd.readAsDataURL(file);
+  });
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button, a"); if(!t || !D) return;
+  const d = t.dataset;
+  if(d.tab){ openTab(d.tab); return; }
+  if(d.sel){ openItem(d.sel); return; }
+  if(d.new!==undefined){ sel = null; answered = null; form = tab==="offers" ? blankOffer() : blankQ(); render(); return; }
+  if(d.cancel!==undefined){ form = null; sel = null; render(); return; }
+  if(d.save!==undefined){ save(); return; }
+  if(d.del!==undefined){ del(); return; }
+  if(d.submit!==undefined){ submitAll(); return; }
+  if(d.peek!==undefined){ $(".side").scrollIntoView({behavior:"smooth"}); return; }
+  if(d.pic){ form.pic = d.pic; document.querySelectorAll("[data-pic]").forEach(b=>b.classList.toggle("on", b.dataset.pic===d.pic)); refreshPreview(); return; }
+  if(d.try!==undefined){ answered = +d.try; refreshPreview(); return; }
+});
+document.addEventListener("input", e => {
+  const t = e.target; if(!form) return;
+  if(t.dataset.f){ form[t.dataset.f] = t.value;
+    if(t.type==="radio"){ t.closest(".seg").querySelectorAll("label").forEach(l=>l.classList.toggle("on", l.querySelector("input").checked));
+      if(t.dataset.f==="channel"){ render(); checkWarn(); return; } }
+    if(t.dataset.f==="color") document.documentElement.style.setProperty("--pc", t.value);
+    answered = null; refreshPreview(); }
+  if(t.dataset.w!==undefined){ form.wrong[+t.dataset.w] = t.value; answered = null; refreshPreview(); }
+});
+document.addEventListener("change", async e => {
+  const t = e.target;
+  if(t.dataset.logo!==undefined && t.files[0]){
+    try{ form.logo = await readLogo(t.files[0]); refreshPreview(); toast("Loggan är tillagd. Spara för att behålla den."); }
+    catch(err){ toast("Loggan är för stor eller går inte att läsa"); }
+  }
+});
+boot();
+</script>
+</body>
+</html>

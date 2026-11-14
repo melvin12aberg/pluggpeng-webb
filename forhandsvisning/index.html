@@ -1058,9 +1058,18 @@ button.lvn.can .gbox{animation:giftHop 1.6s ease-in-out infinite}
 .pt-st small{font-size:12px;color:var(--muted);font-weight:600}
 .pl-card{display:grid;gap:14px;margin-top:16px}
 .pl-new{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end;padding:14px;border:1.5px dashed var(--line);border-radius:14px}
-.pl-new .check,.pl-new .btn{grid-column:span 2}
+.pl-new .check{grid-column:span 2}
+.pl-new .btn{grid-column:span 4;justify-self:start}
 @media (max-width:760px){ .pl-new{grid-template-columns:1fr 1fr} }
 .pl-list{display:grid;gap:8px}
+.pc-h{font-size:16px;margin:4px 0 -4px}
+.pc-row{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px}
+.pc-main{display:grid;gap:3px;min-width:0;flex:1 1 320px}
+.pc-main small{color:var(--muted);font-weight:600}
+.pc-main .pc-note{color:#B45309}
+.pc-main .pill,.pc-main .who{justify-self:start}
+.pc-side{display:grid;gap:8px;justify-items:end}
+.pc-side .f{max-width:150px}
 .pl-row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px}
 .pl-row.off{opacity:.6}
 .pl-main{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;min-width:0}
@@ -3243,7 +3252,15 @@ const dateSv = s => new Date(s+"T12:00").toLocaleDateString("sv-SE",{day:"numeri
 const slanten = (size=34, extra="", wear=wearOf()) => `<span class="slanten ${extra}" style="--s:${size}px"><b></b><i></i>${wearList(wear).map(w=>`<span class="sw sw-${w}"></span>`).join("")}</span>`;
 // Inga 18+-erbjudanden: allt i butiken ska passa alla från 13 år.
 // Under en förhandsvisning visas bara de valda företagen, även i butiken och bakgrunden
-const shopKeys = () => DEMO ? (DEMO.offers ? LIVE : []) : PV.on ? LIVE : PARTNER_KEYS;
+const shopKeys = () => DEMO ? (DEMO.offers ? LIVE : []) : PV.on ? LIVE : [...new Set([...PARTNER_KEYS, ...BASE_LIVE])];
+// Företagens egna erbjudanden (48_foretagsportal.sql). Aktiva ligger också i butikens prislista på servern, så köpen fungerar som vanligt.
+function setPartnerOffers(rows){
+  for(let i = OFFERS.length-1; i >= 0; i--) if(OFFERS[i].id.startsWith("po-")) OFFERS.splice(i, 1);
+  (rows || []).forEach(r => { if(!PARTNERS[r.partner_key]) return;
+    OFFERS.push({id:r.id, partner:r.partner_key, title:r.title, value:r.value_kr, cost:r.price || r.value_kr*10, cat:r.cat, channel:r.channel,
+      text:r.text, terms:r.terms || "", where:r.channel==="kassa" ? r.where_valid || "" : "", url:r.web_url || "", per:r.per_student || 1, until:r.ends_on || ""});
+    OFFER_ART[r.id] = r.pic; });
+}
 const visibleOffers = () => OFFERS.filter(o => (o.inapp || o.donate || shopKeys().includes(o.partner)));
 const wishOffer = () => S.wish ? visibleOffers().find(o=>o.id===S.wish) || null : null;
 const progName = () => { const p = PROGRAMS[S.level].find(p=>p.id===S.program); return p ? p.name + (S.inr && S.level==="gymnasium" ? ` – ${S.inr}` : "") : ""; };
@@ -4876,7 +4893,7 @@ ${body}`;
 }
 
 /* ---------- Samarbetspartners: bonusfrågor där företagen är exemplet ---------- */
-const bonusPacks = k => SPONSOR_PACKS.filter(p => !p.pool && (p.dbPartner==="alla" || p.dbPartner===k));
+const bonusPacks = k => SPONSOR_PACKS.filter(p => !p.pool && (p.dbPartner==="alla" || p.dbPartner===k)).sort((a, b) => b.id.startsWith("pq-") - a.id.startsWith("pq-"));   // företagets egna frågor först
 function partnerTileHTML(){
   return `<button class="pt-tile" data-filter="partners">
     <span class="pt-logos">${LIVE.slice(0,5).map(k=>mono(k)).join("")}</span>
@@ -5735,6 +5752,10 @@ function offerTerms(o, P){
   if(o.donate) t.push(`Gåvan görs av Pluggpeng till ${esc(P.name)}. Den ger inte dig rätt till skattereduktion.`);
   else {
     t.push(`Koden gäller hos ${esc(P.name)} enligt deras villkor och så länge erbjudandet finns kvar. ${o.channel==="kassa" ? "Den visas i kassan och kan användas en gång." : "Den anges när du betalar på webbplatsen och kan användas en gång."}`);
+    if(o.where) t.push(`Gäller: ${esc(o.where)}.`);
+    if(o.until) t.push(`Gäller till och med ${esc(o.until)}.`);
+    if(o.per > 1) t.push(`Du kan lösa in det ${o.per} gånger.`);
+    if(o.terms) t.push(esc(o.terms));
     t.push("Koden kan inte bytas mot pengar och kan inte kombineras med andra erbjudanden om inte partnern säger något annat.");
     t.push(`${esc(P.name)} ansvarar för varan eller tjänsten. Har du frågor om det du fått eller vill reklamera något vänder du dig till ${esc(P.name)}.`);
   }
@@ -6174,12 +6195,14 @@ function ptAdminHTML(){
       <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-pt-save>Spara</button><button class="btn soft" data-pt-cancel>Avbryt</button></div>
     </div>
     <div class="pt-prev"><div class="cc-label">Så här ser det ut</div><div id="pt-preview">${ptPreview(f)}</div></div>
-  </div>${plHTML(f)}` : ""}`;
+  </div>${plHTML(f)}${pcHTML(f)}` : ""}`;
 }
 /* Förhandsvisningslänkar (47_forhandsvisningslankar.sql). En länk visar appen i ett demoläge med bara det här
    företaget, även som utkast. Den som har länken loggar inte in, och demon sparar inget. */
-const PL_BASE = "https://pluggpeng.se/forhandsvisning/?kod=";
+const PL_BASE = "https://pluggpeng.se/forhandsvisning/?kod=", PL_FORM = "https://pluggpeng.se/foretag/?kod=";
+const plIsLocal = () => /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 const plLocal = () => location.origin + "/pluggpeng-webb/forhandsvisning/?kod=";
+const plFormLocal = () => location.origin + "/pluggpeng-webb/foretag/?kod=";
 let plRows = null, plFor = null, plMissing = false;
 const plCode = () => { const A = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", b = crypto.getRandomValues(new Uint8Array(12));
   return [...b].map(x=>A[x % A.length]).join("").match(/.{4}/g).join("-"); };
@@ -6208,32 +6231,117 @@ function plHTML(f){
       <label class="f">Gäller i${sel("pl-days", {7:"7 dagar", 30:"30 dagar", 90:"90 dagar"}, "30")}</label>
       <label class="f">Anteckning (bara för dig)<input class="input" id="pl-note" maxlength="80" placeholder="t.ex. Till Anna, marknad"></label>
       <label class="check"><input type="checkbox" id="pl-offers" checked> Visa företagets erbjudanden i butiken</label>
+      <label class="check"><input type="checkbox" id="pl-edit" checked> Får fylla i formuläret (erbjudanden, bonusfrågor och text om företaget)</label>
       <button class="btn" data-pl-new>Skapa länk</button>
     </div>
     ${plRows===null ? `<p class="meta">Hämtar länkarna …</p>` : plRows.length ? `<div class="pl-list">${plRows.map(r=>{ const [t,c] = st(r), ok = c==="good";
       return `<div class="pl-row${ok?"":" off"}">
-        <div class="pl-main"><code>${r.code}</code><span class="pill ${c}">${t}</span>${r.note ? `<b>${esc(r.note)}</b>` : ""}
+        <div class="pl-main"><code>${r.code}</code><span class="pill ${c}">${t}</span>${r.edit ? `<span class="pill">Med formulär</span>` : ""}${r.note ? `<b>${esc(r.note)}</b>` : ""}
           <small>${plLevel[r.level]} · börjar på ${plStart[r.start].toLowerCase()} · ${r.offers ? "med" : "utan"} erbjudanden · ${ok ? "gäller till " + day(r.expires_at) : "skapad " + day(r.created_at)} · öppnad ${r.views} ${r.views===1?"gång":"gånger"}${r.last_view ? ", senast " + day(r.last_view) : ""}</small></div>
-        ${ok ? `<div class="pl-btns"><button class="btn small" data-pl-copy="${r.code}">Kopiera länk</button>
-          <button class="btn soft small" data-pl-open="${r.code}">Öppna</button>
+        ${ok ? `<div class="pl-btns">${r.edit ? `<button class="btn small" data-pl-copy-both="${r.code}">Kopiera båda länkarna</button>
+          <button class="btn soft small" data-pl-form="${r.code}">Öppna formuläret</button>` : `<button class="btn small" data-pl-copy="${r.code}">Kopiera länk</button>`}
+          <button class="btn soft small" data-pl-open="${r.code}">Öppna förhandsvisningen</button>
           <button class="btn soft small" data-pl-off="${r.code}">Stäng av</button></div>` : ""}
       </div>`; }).join("")}</div>` : `<div class="empty">Inga länkar än.</div>`}`}
   </div>`;
 }
 async function plCreate(){
   const row = {code:plCode(), partner_key:ptForm.key, level:$("#pl-level").value, start:$("#pl-start").value, offers:$("#pl-offers").checked,
-    note:$("#pl-note").value.trim() || null, expires_at:new Date(Date.now() + +$("#pl-days").value*864e5).toISOString()};
+    note:$("#pl-note").value.trim() || null, edit:$("#pl-edit").checked, expires_at:new Date(Date.now() + +$("#pl-days").value*864e5).toISOString()};
   const {error} = await sb.from("partner_previews").insert(row);
   if(error){ console.warn(error); return toast("Kunde inte skapa länken: " + error.message); }
-  plCopy(row.code, "Länken är skapad och kopierad"); plLoad(ptForm.key);
+  row.edit ? plCopyBoth(row.code, "Länkarna är skapade och kopierade") : plCopy(row.code, "Länken är skapad och kopierad"); plLoad(ptForm.key);
 }
 function plCopy(code, msg){ const url = PL_BASE + code;
   (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(()=>toast(msg || "Länken är kopierad"), ()=>prompt("Kopiera länken:", url)); }
+function plCopyBoth(code, msg){
+  const txt = `Formulär (lägg in erbjudanden och frågor): ${PL_FORM + code}\nFörhandsvisning av appen: ${PL_BASE + code}`;
+  (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(()=>toast(msg || "Länkarna är kopierade"), ()=>prompt("Kopiera länkarna:", txt)); }
 async function plOff(code){
   if(!confirm("Stänga av länken? Den slutar fungera direkt, även för den som har den öppen nästa gång sidan laddas.")) return;
   const {error} = await sb.from("partner_previews").update({revoked:true}).eq("code", code);
   if(error) return toast("Kunde inte stänga av: " + error.message);
   toast("Länken är avstängd"); plLoad(ptForm.key);
+}
+/* Det företaget har skrivit i formuläret (48_foretagsportal.sql). Pluggpeng granskar här:
+   Godkänn = granskat. Aktivera = syns för elever (kräver att företaget är Aktiv). Behöver ändras = företaget ser kommentaren. */
+let pcData = null;
+const PC_ST = {utkast:["Utkast",""], inskickat:["Inskickat","warn"], andras:["Behöver ändras","warn"], godkand:["Godkänt","good"], aktiv:["Aktivt","good"], pausad:["Pausat",""]};
+async function pcLoad(key){
+  pcData = {key, loading:true};
+  const [o, q, d] = await Promise.all([
+    sb.from("partner_offers").select("*").eq("partner_key", key).order("created_at"),
+    sb.from("partner_questions").select("*").eq("partner_key", key).order("position").order("created_at"),
+    sb.from("partner_profile_drafts").select("*").eq("partner_key", key).maybeSingle()]);
+  pcData = {key, missing:!!o.error, offers:o.data || [], questions:q.data || [], profile:d.data || null};
+  if(ptForm && ptForm.key===key) renderAdmin();
+}
+function pcHTML(f){
+  if(f.isNew) return "";
+  if(!pcData || pcData.key!==f.key){ pcLoad(f.key); return `<div class="card pl-card"><p class="meta">Hämtar det företaget har skickat in …</p></div>`; }
+  if(pcData.loading) return `<div class="card pl-card"><p class="meta">Hämtar det företaget har skickat in …</p></div>`;
+  if(pcData.missing) return `<div class="card pl-card"><h2 style="font-size:20px">Från företaget</h2><div class="empty">Kör <b>48_foretagsportal.sql</b> i Supabase för att ta emot erbjudanden och frågor.</div></div>`;
+  const st = s => `<span class="pill ${PC_ST[s][1]}">${PC_ST[s][0]}</span>`;
+  const by = r => r.submitted_by ? `Inskickat av ${esc(r.submitted_by)} ${new Date(r.submitted_at).toLocaleString("sv-SE", {dateStyle:"short", timeStyle:"short"})}` : "Inte inskickat än";
+  const btns = (kind, r) => { const b = (act, t, cls="soft") => `<button class="btn ${cls} small" data-pc-act="${act}" data-pc-kind="${kind}" data-pc-id="${esc(r.id || r.partner_key)}">${t}</button>`;
+    if(kind==="profile") return [r.status!=="aktiv" ? b("use", "Använd på företagets sida", "") : "", b("change", "Behöver ändras")].join("");
+    return [["inskickat","andras","utkast"].includes(r.status) ? b("approve", "Godkänn") : "", r.status!=="aktiv" ? b("activate", "Aktivera", "") : b("pause", "Pausa"),
+      r.status!=="aktiv" ? b("change", "Behöver ändras") : "", b("delete", "Ta bort")].join(""); };
+  const P = pcData, ready = PSTATUS[f.key]==="aktiv";
+  return `<div class="card pl-card">
+    <div><h2 style="font-size:20px">Från ${esc(f.name)}</h2>
+    <p class="note" style="margin:6px 0 0">Det här har företaget skrivit i formuläret. Kolla att faktan stämmer, att inget säljer och att erbjudandena passar 13-åringar. <b>Aktivera</b> gör att eleverna ser det${ready ? "" : `, men först när företaget är <b>Aktiv</b> (nu: ${PV_STATUS[PSTATUS[f.key]]?.[0] || "utkast"})`}.</p></div>
+    <h3 class="pc-h">Erbjudanden (${P.offers.length})</h3>
+    ${P.offers.length ? P.offers.map(r=>`<div class="pc-row">
+      <div class="pc-main"><b>${esc(r.title)}</b> ${st(r.status)}<small>${esc(r.text)}</small>
+        <small>Värde ${r.value_kr} kr · ${r.channel==="kassa" ? "I butik" + (r.where_valid ? ": " + esc(r.where_valid) : "") : "Online" + (r.web_url ? ": " + esc(r.web_url) : "")} · ${esc(r.cat)} · ${r.qty_total ? r.qty_total + " st" : "obegränsat"} · ${r.per_student} per elev${r.starts_on || r.ends_on ? " · " + (r.starts_on || "") + "–" + (r.ends_on || "") : ""}</small>
+        ${r.terms ? `<small>Villkor: ${esc(r.terms)}</small>` : ""}${r.admin_note ? `<small class="pc-note">Kommentar: ${esc(r.admin_note)}</small>` : ""}<small>${by(r)}</small></div>
+      <div class="pc-side"><label class="f">Pris i coins<input class="input" type="number" min="50" max="20000" step="10" data-pc-price="${r.id}" value="${r.price || r.value_kr*10}" ${r.status==="aktiv" ? "disabled" : ""}></label>
+        <div class="pl-btns">${btns("offer", r)}</div></div></div>`).join("") : `<div class="empty">Inga erbjudanden än.</div>`}
+    <h3 class="pc-h">Bonusfrågor (${P.questions.length})</h3>
+    ${P.questions.length ? P.questions.map(r=>`<div class="pc-row">
+      <div class="pc-main"><b>${esc(r.question)}</b> ${st(r.status)}<small>✓ ${esc(r.answer)} · ✗ ${r.wrong.map(esc).join(" · ✗ ")}</small>
+        <small>${esc(r.explanation)}</small><small>Källa: ${r.source ? esc(r.source) : "<b>saknas</b>"}</small>
+        ${r.admin_note ? `<small class="pc-note">Kommentar: ${esc(r.admin_note)}</small>` : ""}<small>${by(r)}</small></div>
+      <div class="pc-side"><div class="pl-btns">${btns("question", r)}</div></div></div>`).join("") : `<div class="empty">Inga frågor än.</div>`}
+    ${P.profile ? `<h3 class="pc-h">Text och logga</h3><div class="pc-row">
+      <div class="pc-main"><span class="who">${P.profile.logo ? `<span class="mono img"><img src="${P.profile.logo}" alt=""></span>` : ""}<b>${esc(P.profile.industry || "")}</b> ${st(P.profile.status)}</span>
+        <small>${esc(P.profile.info || "")}</small>${P.profile.color ? `<small><span class="pv-dot" style="background:${esc(P.profile.color)}"></span> ${esc(P.profile.color)}</small>` : ""}
+        ${P.profile.admin_note ? `<small class="pc-note">Kommentar: ${esc(P.profile.admin_note)}</small>` : ""}<small>${by(P.profile)}</small></div>
+      <div class="pc-side"><div class="pl-btns">${btns("profile", P.profile)}</div></div></div>` : ""}
+  </div>`;
+}
+async function pcAct(act, kind, id){
+  const table = {offer:"partner_offers", question:"partner_questions", profile:"partner_profile_drafts"}[kind];
+  const idCol = kind==="profile" ? "partner_key" : "id";
+  const row = kind==="profile" ? pcData.profile : pcData[kind==="offer" ? "offers" : "questions"].find(r=>r.id===id);
+  let patch = null;
+  if(act==="approve") patch = {status:"godkand", approved_at:new Date().toISOString(), admin_note:null};
+  if(act==="pause") patch = {status:"pausad"};
+  if(act==="change"){ const n = prompt("Vad ska företaget ändra? De ser texten i formuläret.", row.admin_note || ""); if(n===null) return; patch = {status:"andras", admin_note:n.trim().slice(0,300) || null}; }
+  if(act==="activate"){
+    if(kind==="offer"){ const price = +($(`[data-pc-price="${id}"]`)?.value || 0);
+      if(!(price >= 50 && price <= 20000)) return toast("Sätt ett pris mellan 50 och 20 000 coins");
+      if(!confirm(`Aktivera ”${row.title}” för ${fmt(price)} coins? Det syns i butiken för alla elever när företaget är aktivt. Gör det bara när avtalet är klart.`)) return;
+      patch = {status:"aktiv", price, approved_at:row.approved_at || new Date().toISOString(), admin_note:null}; }
+    else { if(!confirm("Aktivera frågan? Den hamnar i företagets bonuspaket för alla elever när företaget är aktivt.")) return;
+      patch = {status:"aktiv", approved_at:row.approved_at || new Date().toISOString(), admin_note:null}; }
+  }
+  if(act==="use"){
+    if(!confirm("Använda företagets text, bransch, färg och logga på deras sida?")) return;
+    const up = {}; ["info","industry","color","logo"].forEach(k=>{ if(row[k]) up[k] = row[k]; });
+    const r1 = await sb.from("partners").update(up).eq("key", pcData.key);
+    if(r1.error) return toast("Kunde inte spara: " + r1.error.message);
+    patch = {status:"aktiv", admin_note:null};
+  }
+  if(act==="delete"){ if(!confirm("Ta bort det helt? Det går inte att ångra.")) return;
+    const r = await sb.from(table).delete().eq(idCol, id); if(r.error) return toast("Kunde inte ta bort: " + r.error.message);
+    toast("Borttaget"); return pcLoad(pcData.key); }
+  if(!patch) return;
+  const r = await sb.from(table).update(patch).eq(idCol, id);
+  if(r.error) return toast("Kunde inte spara: " + r.error.message);
+  toast("Sparat"); await pcLoad(pcData.key);
+  if(act==="use" || act==="activate" || act==="pause") loadPartners();
 }
 // Loggan görs om till en liten bild (högst 256 px) och sparas som text i tabellen
 function ptReadLogo(file){
@@ -7283,13 +7391,16 @@ if(d.shopjump){ const el = $("#shop-"+d.shopjump); if(!el) return;
   if(d.pvGo!==undefined){ if(pvSel.length) startPreview(); return; }
   if(d.pvStop!==undefined){ stopPreview(); return; }
   if(d.ptNew!==undefined){ ptForm = ptBlank(); renderAdmin(); return; }
-  if(d.ptEdit){ plFor = null; const r = ptList.find(x=>x.key===d.ptEdit); ptForm = {...ptBlank(), ...r, industry:r.industry||"", info:r.info||"", isNew:false}; renderAdmin(); return; }
+  if(d.ptEdit){ plFor = null; pcData = null; const r = ptList.find(x=>x.key===d.ptEdit); ptForm = {...ptBlank(), ...r, industry:r.industry||"", info:r.info||"", isNew:false}; renderAdmin(); return; }
   if(d.ptCancel!==undefined){ ptForm = null; renderAdmin(); return; }
   if(d.ptNologo!==undefined){ ptForm.logo = null; renderAdmin(); return; }
   if(d.ptSave!==undefined){ ptSave(); return; }
   if(d.plNew!==undefined){ plCreate(); return; }
   if(d.plCopy){ plCopy(d.plCopy); return; }
-  if(d.plOpen){ open((/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? plLocal() : PL_BASE) + d.plOpen, "_blank"); return; }
+  if(d.plOpen){ open((plIsLocal() ? plLocal() : PL_BASE) + d.plOpen, "_blank"); return; }
+  if(d.plForm){ open((plIsLocal() ? plFormLocal() : PL_FORM) + d.plForm, "_blank"); return; }
+  if(d.plCopyBoth){ plCopyBoth(d.plCopyBoth); return; }
+  if(d.pcAct){ pcAct(d.pcAct, d.pcKind, d.pcId); return; }
   if(d.plOff){ plOff(d.plOff); return; }
   if(d.adminMake){ adminTab="skapa"; renderAdmin(); const sel = $("#a-course"); if([...sel.options].some(o=>o.value===d.adminMake)) sel.value = d.adminMake; else toast("Demo: AI-mallar finns bara för tre kurser"); return; }
   // moment
@@ -7475,6 +7586,9 @@ async function loadPartners(){
   if(PV.on && !IS_ADMIN && !DEV){ PV = {on:false, keys:[]}; savePV(); }
   if(error){ console.warn("Företagen kunde inte hämtas", error); }
   else setPartners(data);
+  // Aktiva erbjudanden (finns inte tabellen än blir det bara tomt)
+  const po = await sb.from("partner_offers").select("id, partner_key, title, text, terms, value_kr, channel, cat, pic, where_valid, web_url, per_student, ends_on, price, status").eq("status", "aktiv");
+  setPartnerOffers(po.error ? [] : po.data);
   refreshPartners();
 }
 // Ger alla paket nytt företag efter LIVE (efter inloggning, ny förhandsvisning eller nya företag)
@@ -7937,8 +8051,20 @@ async function demoBoot(){
   if(e2 || !b){ console.warn(e2); return demoFail("Frågorna kunde inte hämtas. Ladda om sidan och försök igen."); }
   sb = null; user = null;   // härifrån pratar demon aldrig med servern, så inget kan sparas
   DEMO = o;
-  const k = o.partner.key;
-  setPartners([{...o.partner, status:"aktiv"}]); PSTATUS[k] = o.partner.status;   // i demon räknas företaget som aktivt, även som utkast
+  const k = o.partner.key, c = o.content || {};
+  // Företagets förslag från formuläret syns i demon innan de är godkända
+  const pf = c.profile && c.profile.status!=="pausad" ? c.profile : {};
+  setPartners([{...o.partner, info:pf.info || o.partner.info, industry:pf.industry || o.partner.industry, color:pf.color || o.partner.color, logo:pf.logo || o.partner.logo, status:"aktiv"}]);
+  PSTATUS[k] = o.partner.status;   // i demon räknas företaget som aktivt, även som utkast
+  setPartnerOffers((c.offers || []).filter(x=>x.status!=="pausad"));
+  // Bonusfrågorna om företaget: alla som inte är pausade, även utkast
+  b.packs = b.packs.filter(p=>!p.id.startsWith("pq-")); b.questions = b.questions.filter(q=>!q.pack_id.startsWith("pq-"));
+  const cq = (c.questions || []).filter(q=>q.status!=="pausad"), pid = "pq-" + k;
+  if(cq.length){
+    b.packs.push({id:pid, course:"Samarbetspartners", moment:"Om " + o.partner.name, partner:k, reward:30, mins:3, reviewed:true, sponsored:true, pool:false, nq:cq.length, cases:[]});
+    cq.forEach((q, i) => { const op = [q.answer, ...q.wrong].map((t, j)=>({t, j, r:hash01(q.id + t)})).sort((x, y)=>x.r - y.r);
+      b.questions.push({id:pid + "#" + i, pack_id:pid, position:i, type:"choice", question:q.question, options:op.map(x=>x.t), answer:op.findIndex(x=>x.j===0), explanation:q.explanation}); });
+  }
   absorb({...b, qids:[]});
   const prog = o.level==="grundskola" ? "ak9" : o.level==="gymnasium" ? "ek" : (PROGRAMS.universitet||[])[0]?.id || "";
   Object.assign(S, {onboarded:true, toured:true, notifAsked:true, termsVersion:TERMS_VERSION, name:"Demo-elev", level:o.level, program:prog,
